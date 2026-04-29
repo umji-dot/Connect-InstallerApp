@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>검증 단계 (OBD) · Connect Installer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="../colors_and_type.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #EAEAEC;
+      font-family: var(--font-sans);
+      color: var(--n-900);
+      min-height: 100vh;
+    }
+    .stage {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+      padding: 24px;
+      align-items: start;
+    }
+    .frame-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .frame-label {
+      font-size: 13px;
+      color: #66666F;
+      font-weight: 700;
+    }
+    /* Chrome: SKILL.md §8 — 모바일 프레임과 시각적으로 명확히 분리 */
+    .chrome {
+      background: #1F1F23;
+      color: #F2F2F3;
+      border-radius: 14px;
+      padding: 18px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+    }
+    .chrome h2 {
+      font-size: 11px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #9797A0;
+      margin: 0 0 10px;
+      font-family: ui-monospace, monospace;
+    }
+    .chrome .group { margin-bottom: 18px; }
+    .chrome button.scn {
+      all: unset;
+      cursor: pointer;
+      display: block;
+      width: 100%;
+      padding: 9px 11px;
+      margin-bottom: 6px;
+      border-radius: 6px;
+      background: #2A2A30;
+      color: #F2F2F3;
+      font-family: ui-monospace, monospace;
+      font-size: 12px;
+      border: 1px solid #3A3A42;
+      box-sizing: border-box;
+    }
+    .chrome button.scn:hover { background: #34343C; }
+    .chrome button.scn.active {
+      background: #4A6FF5;
+      border-color: #4A6FF5;
+      color: white;
+    }
+    .chrome .scn .step-tag {
+      color: #9797A0;
+      font-size: 10px;
+      display: block;
+      margin-top: 2px;
+    }
+    .chrome button.scn.active .step-tag { color: rgba(255,255,255,0.7); }
+    .chrome .meta {
+      background: #2A2A30;
+      border-radius: 6px;
+      padding: 10px 11px;
+      color: #CECED2;
+      line-height: 1.55;
+    }
+    .chrome .meta b { color: #F2F2F3; }
+    .chrome code {
+      color: #FFCB6B;
+      background: rgba(255,203,107,0.08);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="frame-col">
+      <div id="root"></div>
+      <div class="frame-label">검증 단계 — OBD 모드 (PRD v5.5 §5.1.6)</div>
+    </div>
+
+    <aside class="chrome" id="chrome" aria-label="검수 패널 (chrome)">
+      <div class="group">
+        <h2>Scenarios — Happy</h2>
+        <button class="scn" data-case="step-1">차량 시동 OFF 안내 (1/8)<span class="step-tag">action · 차단형</span></button>
+        <button class="scn" data-case="step-3">단말기 LED 1회 점멸 확인 (3/8)<span class="step-tag">confirm · LED 이미지</span></button>
+        <button class="scn" data-case="step-6">단말기 LED 2회 점멸 확인 (6/8)<span class="step-tag">confirm · LED 이미지</span></button>
+        <button class="scn" data-case="step-8">설치 완료 (8/8) — 펌웨어 버전<span class="step-tag">complete · CarDB/OBD/APP</span></button>
+      </div>
+      <div class="group">
+        <h2>Scenarios — Error (v5.5 신규)</h2>
+        <button class="scn" data-case="ex-02">EX-02 단말기 초기화 실패<span class="step-tag">retry from step 0</span></button>
+        <button class="scn" data-case="ex-14">EX-14 CarDB 설치 실패<span class="step-tag">retry from step 1</span></button>
+        <button class="scn" data-case="ex-15">EX-15 CarDB 검증 실패<span class="step-tag">retry from step 2</span></button>
+        <button class="scn" data-case="ex-03">EX-03 시동 미감지 (6/8)<span class="step-tag">retry from step 6</span></button>
+      </div>
+      <div class="group">
+        <h2>Scenarios — In-Progress</h2>
+        <button class="scn" data-case="running">검증 진행 중 (체크리스트)<span class="step-tag">step 2 진행 중</span></button>
+        <button class="scn" data-case="locktest">시동잠금 테스트 인라인 배너<span class="step-tag">BR-24 항상 노출</span></button>
+      </div>
+      <div class="group">
+        <h2>Debug</h2>
+        <div class="meta">
+          <b>Mode</b> OBD<br/>
+          <b>Vehicle</b> 08허1234 / 현대 포터2<br/>
+          <b>Timeout</b> <code>?timeout=3</code> (default)<br/>
+          <b>BR-24</b> 단계별 재시도 정책 적용<br/>
+          <b>EX-14 재시도</b> step 1부터<br/>
+          <b>EX-15 재시도</b> step 2부터
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script src="../ui_kits/installer-app/tokens.js"></script>
+  <script type="text/babel" src="../ui_kits/installer-app/ios-frame.jsx"></script>
+  <script type="text/babel" src="../ui_kits/installer-app/Primitives.jsx"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useState, useEffect } = React;
+    const T = window.CIT;
+
+    // ---- 검증 단계 정의 (PRD §5.1.6 OBD 모드 8단계) ----------------------------
+    const STEPS = [
+      { id: 0, label: "OBD 설정 초기화" },
+      { id: 1, label: "차량 DB(CarDB) 설치" },
+      { id: 2, label: "차량 DB 결과 체크" },
+      { id: 3, label: "운행 패킷 1/8 — 시동 OFF 안내" },
+      { id: 4, label: "운행 패킷 2/8 — 시동 OFF 확인" },
+      { id: 5, label: "운행 패킷 3/8 — LED 1회 점멸" },
+      { id: 6, label: "운행 패킷 4/8 — 시동 ON 안내" },
+      { id: 7, label: "운행 패킷 5/8 — 시동 ON 확인" },
+      { id: 8, label: "운행 패킷 6/8 — LED 2회 점멸" },
+      { id: 9, label: "운행 패킷 7/8 — 다음 단계" },
+      { id: 10, label: "운행 패킷 8/8 — 설치 완료" },
+    ];
+
+    // ---- 시나리오별 화면 상태 ------------------------------------------------
+    function getScenario(c) {
+      // returns { progressIdx, modal, banner, lockBanner }
+      switch (c) {
+        case "step-1": return {
+          progressIdx: 3,
+          modal: { kind:"action", title:"차량 시동을 꺼주세요.", body:"단말기 Trip 패킷 수신을 확인하기 위해 차량 시동을 꺼주세요.", step:"1/8", buttons:[{label:"진행", variant:"primary"}] }
+        };
+        case "step-3": return {
+          progressIdx: 5,
+          modal: { kind:"confirmLED", title:"단말기 LED를 확인해 주세요.", body:"단말기 바코드 아래 빨간 동그라미 안 'O'부분이 1번씩 깜박거리나요? 아니라면 최장 1분 대기해주세요. (단말기가 차량의 시동을 인식중입니다.)", step:"3/8", blink:1, buttons:[{label:"아니오", variant:"outline"},{label:"네", variant:"primary"}] }
+        };
+        case "step-6": return {
+          progressIdx: 8,
+          modal: { kind:"confirmLED", title:"단말기 LED를 확인해 주세요.", body:"단말기 바코드 아래 빨간 동그라미 안 'O'부분이 2번씩 깜박거리나요? 아니라면 최장 1분 대기해주세요. (단말기가 차량의 시동을 인식중입니다.)", step:"6/8", blink:2, buttons:[{label:"아니오", variant:"outline"},{label:"네", variant:"primary"}] }
+        };
+        case "step-8": return {
+          progressIdx: 10,
+          modal: { kind:"complete", title:"설치가 정상적으로 완료되었습니다.", body:"패킷 유효성 체크가 모두 완료되었습니다.", step:"8/8", buttons:[{label:"완료", variant:"primary"}] }
+        };
+        case "ex-02": return {
+          progressIdx: 0,
+          modal: { kind:"error", title:"단말기 초기화 실패", body:"단말기가 OBD 포트에 올바르게 연결되어 있는지 확인해 주세요. 재시도하시겠습니까?", code:"EX-02", retryFrom:0, buttons:[{label:"작업 불가", variant:"outline"},{label:"재시도", variant:"danger"}] }
+        };
+        case "ex-14": return {
+          progressIdx: 1,
+          modal: { kind:"error", title:"차량 DB 설치 실패", body:"차량 DB(CarDB) 설치에 실패했습니다. OBD 포트 연결 상태를 확인해 주세요.", code:"EX-14", retryFrom:1, buttons:[{label:"작업 불가", variant:"outline"},{label:"재시도", variant:"danger"}] }
+        };
+        case "ex-15": return {
+          progressIdx: 2,
+          modal: { kind:"error", title:"차량 DB 검증 실패", body:"차량 DB 설치 결과가 정상이 아닙니다. 단말기 연결 상태를 재확인해 주세요.", code:"EX-15", retryFrom:2, buttons:[{label:"작업 불가", variant:"outline"},{label:"재시도", variant:"danger"}] }
+        };
+        case "ex-03": return {
+          progressIdx: 8,
+          modal: { kind:"error", title:"시동이 감지되지 않습니다", body:"단말기가 차량 시동을 감지하지 못했습니다.\n아래 사항을 확인해 주세요:\n① 단말기 LED가 빨간 동그라미로 2번씩 깜빡이는지 확인\n② OBD 포트 연결 상태 재확인\n③ 차량 시동이 켜진 상태인지 확인", code:"EX-03", retryFrom:6, buttons:[{label:"작업 불가", variant:"outline"},{label:"재시도", variant:"danger"}] }
+        };
+        case "running": return {
+          progressIdx: 2, running: true
+        };
+        case "locktest": return {
+          progressIdx: 11, lockBanner: true
+        };
+        default: return { progressIdx: 0 };
+      }
+    }
+
+    // ---- 단계 상태 계산 ------------------------------------------------------
+    function statusFor(idx, progressIdx, isError) {
+      if (isError && idx === progressIdx) return "incomplete";
+      if (idx < progressIdx) return "complete";
+      if (idx === progressIdx) return "progress";
+      return "wait";
+    }
+
+    // ---- LED placeholder (PRD §5.1.6 — 단말기 LED 점멸 이미지 자리) ----------
+    function LEDPlaceholder({ blink }) {
+      return (
+        <div style={{
+          width: 240, height: 160,
+          background: T.colors.n100,
+          border: `1px dashed ${T.colors.n400}`,
+          borderRadius: T.radius.md,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 10,
+          margin: "12px auto",
+        }}>
+          <div style={{
+            width: 18, height: 18, borderRadius: 9,
+            background: T.colors.danger,
+            animation: `citspin 0s, citblink ${blink === 1 ? "1.2s" : "0.6s"} steps(2,end) infinite`,
+            boxShadow: `0 0 12px ${T.colors.danger}`,
+          }} />
+          <div style={{
+            fontFamily: "ui-monospace, monospace",
+            fontSize: 12, color: T.colors.n600,
+          }}>
+            단말기 LED {blink}회 점멸 (placeholder)
+          </div>
+        </div>
+      );
+    }
+
+    // ---- 검증 결과 카드 (8/8 완료 시 펌웨어 버전 표시) ----------------------
+    function FirmwareList() {
+      const rows = [
+        { label: "CarDB 버전", value: "v3.18.0" },
+        { label: "OBD 버전", value: "v2.04" },
+        { label: "APP 버전", value: "v1.12.3" },
+      ];
+      return (
+        <div style={{
+          background: T.colors.successSoft,
+          border: `1px solid ${T.colors.success}`,
+          borderRadius: T.radius.md,
+          padding: 14,
+          marginTop: 12,
+        }}>
+          {rows.map((r, i) => (
+            <div key={r.label} style={{
+              display: "flex", justifyContent: "space-between",
+              padding: "6px 0",
+              borderTop: i === 0 ? "none" : `1px solid ${T.colors.n200}`,
+              fontSize: T.font.sz.body,
+            }}>
+              <span style={{ color: T.colors.n700 }}>{r.label}</span>
+              <span style={{ fontWeight: T.font.w.bold, color: T.colors.primary, fontFamily: "ui-monospace, monospace" }}>{r.value}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // ---- 검증 화면 본문 ------------------------------------------------------
+    function ValidationOBDScreen({ scenario, onAction }) {
+      const s = getScenario(scenario);
+      const isError = !!(s.modal && s.modal.kind === "error");
+
+      return (
+        <div data-screen-label="검증 단계 (OBD)" style={{
+          width: "100%", height: "100%",
+          display: "flex", flexDirection: "column",
+          background: T.colors.n50,
+        }}>
+          <Header title="검증 단계" showBack={true} />
+
+          <div style={{
+            flex: 1, overflow: "auto",
+            padding: "16px 20px 100px",
+          }}>
+            {/* 차량번호 헤더 (BR-22) */}
+            <div style={{
+              background: T.colors.white,
+              border: `1px solid ${T.colors.n300}`,
+              borderRadius: T.radius.lg,
+              padding: 16,
+              marginBottom: 16,
+            }}>
+              <div style={{ fontSize: T.font.sz.caption, color: T.colors.n600, fontWeight: T.font.w.med, marginBottom: 4 }}>차량번호 / 차종</div>
+              <div style={{ fontSize: T.font.sz.h2, fontWeight: T.font.w.bold, color: T.colors.primary, lineHeight: 1.2 }}>08허1234</div>
+              <div style={{ fontSize: T.font.sz.body, color: T.colors.n700, marginTop: 4 }}>현대 포터2 · OBD 모드</div>
+            </div>
+
+            {/* 검증 진행 헤더 */}
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              marginBottom: 12,
+            }}>
+              <div style={{ fontSize: T.font.sz.bodyLg, fontWeight: T.font.w.bold, color: T.colors.primary }}>
+                검증 진행
+              </div>
+              <div style={{ fontSize: T.font.sz.body, color: T.colors.n600, fontWeight: T.font.w.med }}>
+                {Math.min(s.progressIdx, STEPS.length)} / {STEPS.length}
+              </div>
+            </div>
+
+            {/* 체크리스트 */}
+            <div style={{
+              background: T.colors.white,
+              border: `1px solid ${T.colors.n300}`,
+              borderRadius: T.radius.lg,
+              overflow: "hidden",
+            }}>
+              {STEPS.map((step, i) => {
+                const st = statusFor(step.id, s.progressIdx, isError);
+                return (
+                  <div key={step.id} style={{
+                    padding: "14px 16px",
+                    borderTop: i === 0 ? "none" : `1px solid ${T.colors.n200}`,
+                    display: "flex", alignItems: "center", gap: 12,
+                    background: st === "progress" ? "#F4F7FF" : T.colors.white,
+                  }}>
+                    <StepDot status={st} />
+                    <div style={{ flex: 1, fontSize: T.font.sz.body, color: st === "wait" ? T.colors.n500 : T.colors.primary, fontWeight: st === "progress" || st === "incomplete" ? T.font.w.bold : T.font.w.med }}>
+                      {step.label}
+                    </div>
+                    <StepStatusLabel status={st} running={s.running && st === "progress"} />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 8/8 완료 시 펌웨어 버전 */}
+            {s.progressIdx >= 10 && !s.lockBanner && <FirmwareList />}
+
+            {/* 시동잠금 테스트 섹션 (8/8 이후) */}
+            {(s.progressIdx >= 10 || s.lockBanner) && (
+              <div style={{ marginTop: 20 }}>
+                <div style={{ fontSize: T.font.sz.bodyLg, fontWeight: T.font.w.bold, color: T.colors.primary, marginBottom: 10 }}>
+                  시동잠금 테스트
+                </div>
+                {/* BR-24 인라인 배너 — 항상 노출 */}
+                <InlineBanner
+                  tone="warning"
+                  title="차량 시동 완전 OFF 확인"
+                  body="차량 시동이 완전히 꺼진 상태에서 버튼을 눌러 주세요. 잠금 → 해제 순서로 테스트가 자동 진행됩니다."
+                />
+                <div style={{ marginTop: 12 }}>
+                  <Button variant="primary" size="large" fullWidth>시동잠금 테스트 시작</Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 하단 액션바 */}
+          <BottomAction>
+            <Button variant="primary" size="large" fullWidth
+              onClick={() => onAction("next")}>
+              {s.progressIdx >= 10 ? "검증 결과 보기" : "검증 진행 중..."}
+            </Button>
+          </BottomAction>
+
+          {/* 모달 */}
+          {s.modal && <ValidationModal data={s.modal} onClose={() => onAction("dismiss")} onConfirm={() => onAction("confirm")} />}
+        </div>
+      );
+    }
+
+    function StepDot({ status }) {
+      const size = 22;
+      let bg = T.colors.n200, fg = T.colors.n500, content = null;
+      if (status === "complete") { bg = T.colors.success; fg = "white"; content = "check"; }
+      else if (status === "progress") { bg = T.colors.info; fg = "white"; content = "more_horiz"; }
+      else if (status === "incomplete") { bg = T.colors.danger; fg = "white"; content = "close"; }
+      return (
+        <div style={{
+          width: size, height: size, borderRadius: size,
+          background: bg, color: fg,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flex: "0 0 auto",
+        }}>
+          {content && <Icon name={content} size={16} color={fg} />}
+        </div>
+      );
+    }
+
+    function StepStatusLabel({ status, running }) {
+      const map = {
+        wait:       { text: "대기", color: T.colors.n500 },
+        progress:   { text: running ? "" : "진행 중", color: T.colors.info },
+        complete:   { text: "완료", color: T.colors.success },
+        incomplete: { text: "실패", color: T.colors.danger },
+      };
+      const m = map[status];
+      if (running) {
+        return <LoadingSpinner size="sm" />;
+      }
+      return (
+        <span style={{
+          fontSize: 14,  // §1 예외 적용 — Status Badge
+          fontWeight: T.font.w.bold,
+          color: m.color,
+          padding: "4px 10px",
+          borderRadius: T.radius.sm,
+          background: status === "complete" ? T.colors.successBg
+                    : status === "incomplete" ? T.colors.dangerBg
+                    : status === "progress" ? "rgba(27,69,210,0.08)"
+                    : T.colors.n100,
+        }}>{m.text}</span>
+      );
+    }
+
+    // ---- 검증 단계 모달 ------------------------------------------------------
+    function ValidationModal({ data, onClose, onConfirm }) {
+      const isError = data.kind === "error";
+      const isComplete = data.kind === "complete";
+      const isLED = data.kind === "confirmLED";
+
+      return (
+        <div role="dialog" aria-modal="true" style={{
+          position: "absolute", inset: 0,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: 24,
+          zIndex: 100,
+        }}>
+          <div style={{
+            background: T.colors.white,
+            borderRadius: T.radius.lg,
+            width: "100%", maxWidth: 340,
+            overflow: "hidden",
+          }}>
+            {/* 헤더 — 단계 표시 */}
+            {data.step && (
+              <div style={{
+                background: isError ? T.colors.dangerBg : (isComplete ? T.colors.successBg : T.colors.n100),
+                color: isError ? T.colors.danger : (isComplete ? T.colors.success : T.colors.n700),
+                fontSize: 14,  // §1 예외 적용 — Status Badge성 표시
+                fontWeight: T.font.w.bold,
+                padding: "8px 16px",
+                fontFamily: "ui-monospace, monospace",
+                letterSpacing: 0.4,
+              }}>
+                {isError ? `오류 ${data.code}` : `STEP ${data.step}`}
+              </div>
+            )}
+
+            <div style={{ padding: "20px 20px 16px" }}>
+              <div style={{
+                fontSize: T.font.sz.bodyLg,
+                fontWeight: T.font.w.bold,
+                color: isError ? T.colors.danger : T.colors.primary,
+                marginBottom: 10,
+                lineHeight: 1.35,
+              }}>{data.title}</div>
+
+              <div style={{
+                fontSize: T.font.sz.body,
+                color: T.colors.n700,
+                lineHeight: 1.55,
+                whiteSpace: "pre-line",
+              }}>{data.body}</div>
+
+              {isLED && <LEDPlaceholder blink={data.blink} />}
+
+              {isComplete && <FirmwareList />}
+
+              {isError && data.retryFrom !== undefined && (
+                <div style={{
+                  marginTop: 14,
+                  padding: "8px 12px",
+                  background: T.colors.n100,
+                  borderRadius: T.radius.sm,
+                  fontSize: T.font.sz.caption,
+                  color: T.colors.n700,
+                  fontWeight: T.font.w.med,
+                }}>
+                  <Icon name="replay" size={16} color={T.colors.n700} style={{ verticalAlign: "middle", marginRight: 6 }} />
+                  재시도 시 {STEPS.find(x=>x.id===data.retryFrom)?.label} 단계부터 재진행
+                </div>
+              )}
+            </div>
+
+            {/* 버튼 영역 */}
+            <div style={{
+              display: "flex", gap: 8,
+              padding: "0 16px 16px",
+            }}>
+              {data.buttons.map((b, i) => (
+                <div key={i} style={{ flex: 1 }}>
+                  <Button
+                    variant={b.variant}
+                    size="large"
+                    fullWidth
+                    onClick={() => (isError && b.variant === "danger" ? onConfirm() : onClose())}
+                  >{b.label}</Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ---- Shell --------------------------------------------------------------
+    function Shell() {
+      const [scenario, setScenario] = useState("running");
+
+      useEffect(() => {
+        const buttons = document.querySelectorAll("#chrome button.scn");
+        const update = (c) => buttons.forEach(b => b.classList.toggle("active", b.dataset.case === c));
+        update(scenario);
+        buttons.forEach(b => {
+          b.onclick = () => { setScenario(b.dataset.case); update(b.dataset.case); };
+        });
+      }, [scenario]);
+
+      const onAction = (kind) => {
+        // demo: dismiss returns to running list state
+        if (kind === "dismiss") setScenario("running");
+        if (kind === "confirm") setScenario("running");
+      };
+
+      return (
+        <IOSDevice width={402} height={874}>
+          <div style={{
+            width: "100%", height: "100%",
+            paddingTop: 54, paddingBottom: 34,
+            boxSizing: "border-box",
+            display: "flex", flexDirection: "column",
+            background: T.colors.n50,
+            fontFamily: T.font.family,
+            position: "relative",
+          }}>
+            <ValidationOBDScreen scenario={scenario} onAction={onAction} />
+          </div>
+        </IOSDevice>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Shell />);
+  </script>
+
+  <style>
+    @keyframes citblink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0.15; }
+    }
+  </style>
+</body>
+</html>

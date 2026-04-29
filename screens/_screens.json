@@ -1,0 +1,72 @@
+[
+  {
+    "id": "ui-kit-demo",
+    "file": "../ui_kits/installer-app/index.html",
+    "title": "UI 킷 데모 (6 화면)",
+    "section": "전체 플로우 (UI 킷)",
+    "desc": "배정 작업 / 작업 상세 / 메뉴얼 / 사진 / 완료 / 오프라인 — 좌측 nav로 전환",
+    "prd": "ui_kits/installer-app",
+    "next": [],
+    "prev": []
+  },
+  {
+    "id": "validation-obd",
+    "file": "validation-obd.html",
+    "title": "검증 단계 (OBD)",
+    "section": "검증 (PRD v5.5)",
+    "desc": "OBD 모드 8단계 + EX-14/EX-15 재시도",
+    "prd": "PRD v5.5 §5.1.6",
+    "next": [],
+    "prev": []
+  },
+  {
+    "id": "01-job-list",
+    "file": "01-job-list.html",
+    "title": "01 배정 작업 목록",
+    "section": "본 플로우 (PRD v5.5)",
+    "desc": "탭1. 차량번호 위계 우선 + 임시 배지 + 작업 요청일",
+    "prd": "PRD v5.5 §5.1.1",
+    "next": ["02-job-detail"],
+    "prev": []
+  },
+  {
+    "id": "02-job-detail",
+    "file": "02-job-detail.html",
+    "title": "02 작업 상세",
+    "section": "본 플로우 (PRD v5.5)",
+    "desc": "설치/AS/임시 3케이스. 메모 최상단, 차량/현장 카드 분리, 임시 시 작업 시작 비활성",
+    "prd": "PRD v5.5 §5.1.2",
+    "next": ["03-install-task-list"],
+    "prev": ["01-job-list"]
+  },
+  {
+    "id": "03-install-task-list",
+    "file": "03-install-task-list.html",
+    "title": "03 설치 작업 목록",
+    "section": "본 플로우 (PRD v5.5)",
+    "desc": "위저드 진입점. 미완료/진행중/완료 3케이스. 모두 완료 시 검증하기 활성",
+    "prd": "PRD v5.5 §5.1.3",
+    "next": ["04-wizard-step1-device"],
+    "prev": ["02-job-detail"]
+  },
+  {
+    "id": "04-wizard-step1-device",
+    "file": "04-wizard-step1-device.html",
+    "title": "04 위저드 Step1 — 단말기 선택",
+    "section": "본 플로우 (PRD v5.5)",
+    "desc": "9개 모델 리스트 (RadioGroup). 미선택/선택 2케이스",
+    "prd": "PRD v5.5 §5.1.4 Step 1/7",
+    "next": ["05-wizard-step2-settings"],
+    "prev": ["03-install-task-list"]
+  },
+  {
+    "id": "05-wizard-step2-settings",
+    "file": "05-wizard-step2-settings.html",
+    "title": "05 위저드 Step2 — 설정 입력",
+    "section": "본 플로우 (PRD v5.5)",
+    "desc": "SN/ID/PW + Non-OBD 호출 + 운영팀 설정 읽기. OBD/Non-OBD × 호출 4케이스",
+    "prd": "PRD v5.5 §5.1.5 Step 2/7",
+    "next": ["06-wizard-step3"],
+    "prev": ["04-wizard-step1-device"]
+  }
+]

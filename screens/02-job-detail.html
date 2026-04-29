@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>작업 상세 — Connect Installer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="../colors_and_type.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #EAEAEC;
+      font-family: var(--font-sans);
+      color: var(--n-900);
+      min-height: 100vh;
+    }
+    .stage {
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 24px;
+      padding: 32px 24px;
+      flex-wrap: wrap;
+    }
+    .frame-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .frame-wrap .label {
+      font-size: 13px;
+      color: var(--n-600);
+      font-weight: 700;
+      max-width: 402px;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .scenarios {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      background: white;
+      border: 1px solid var(--n-300);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      z-index: 100;
+      min-width: 200px;
+    }
+    .scenarios .title {
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--n-500);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="frame-wrap">
+      <div id="root-install"></div>
+      <div class="label">A. 설치 작업 (정상)</div>
+    </div>
+    <div class="frame-wrap">
+      <div id="root-as"></div>
+      <div class="label">B. AS 작업 (요청사항 노출)</div>
+    </div>
+    <div class="frame-wrap">
+      <div id="root-temp"></div>
+      <div class="label">C. 임시 등록 차량 (작업 시작 비활성 + 임시 배너)</div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script src="../ui_kits/installer-app/tokens.js"></script>
+  <script type="text/babel" src="ios-frame.jsx"></script>
+  <script type="text/babel" src="../ui_kits/installer-app/Primitives.jsx"></script>
+  <script type="text/babel" src="../ui_kits/installer-app/JobDetailScreen.jsx"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const T = window.CIT;
+
+    const JOB_INSTALL = {
+      id: "j1",
+      plate: "12가 3456",
+      model: "현대 셀토스",
+      company: "주식회사아이카",
+      branch: "강남 지점",
+      address: "서울특별시 강남구 논현동 123, 지하 2층 주차장",
+      phone: "010-1234-5678",
+      type: "OBD",
+      kind: "설치",
+      date: "2026-04-27",
+      isTemp: false,
+      adminMemo: "강남 지역 주차 주의. 지하 2층 주차장 진입 필요. 고객 12:30 이후 가능.",
+    };
+
+    const JOB_AS = {
+      id: "j2",
+      plate: "112가 5821",
+      model: "벤츠 E-Class",
+      company: "한국물류",
+      branch: "분당 지점",
+      address: "성남시 분당구 정자동 45",
+      phone: "010-9876-5432",
+      type: "Non-OBD",
+      kind: "AS",
+      date: "2026-04-27",
+      isTemp: false,
+      adminMemo: "차량 키 1개만 보유. 시동 잠금 미동작 신고 건.",
+      asRequests: ["단말기 단순 교체", "시동잠금 동작 점검", "GPS 재고정"],
+    };
+
+    const JOB_TEMP = {
+      id: "j4",
+      plate: "임시 0001",
+      model: "현대 포터2",
+      company: "현대모비스",
+      branch: "용인 테스트",
+      address: "용인시 기흥구 마북동 1",
+      phone: "010-5555-1111",
+      type: "OBD",
+      kind: "설치",
+      date: "2026-04-28",
+      isTemp: true,
+      adminMemo: "차대번호 확인 대기. 운영팀 확정 후 진행.",
+    };
+
+    function Frame({ job, label }) {
+      return (
+        <IOSDevice width={402} height={874}>
+          <div data-screen-label={label} style={{
+            width: "100%", height: "100%",
+            paddingTop: 54,
+            paddingBottom: 34,
+            boxSizing: "border-box",
+            display: "flex", flexDirection: "column",
+            background: T.colors.n50,
+            fontFamily: T.font.family,
+          }}>
+            <JobDetailScreen
+              job={job}
+              onBack={() => console.log("back")}
+              onUnable={() => console.log("unable")}
+              onStart={() => console.log("start", job.plate)}
+            />
+          </div>
+        </IOSDevice>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root-install")).render(
+      <Frame job={JOB_INSTALL} label="02 작업 상세 (설치)" />
+    );
+    ReactDOM.createRoot(document.getElementById("root-as")).render(
+      <Frame job={JOB_AS} label="02 작업 상세 (AS)" />
+    );
+    ReactDOM.createRoot(document.getElementById("root-temp")).render(
+      <Frame job={JOB_TEMP} label="02 작업 상세 (임시)" />
+    );
+  </script>
+</body>
+</html>

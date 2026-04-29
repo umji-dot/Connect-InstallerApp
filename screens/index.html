@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>Screens · Connect Installer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="../colors_and_type.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #EAEAEC;
+      font-family: var(--font-sans);
+      color: var(--n-900);
+      min-height: 100vh;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+    aside.sidebar {
+      background: #1F1F23;
+      color: #F2F2F3;
+      padding: 24px 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar h1 { font-size: 16px; font-weight: 700; margin: 0 0 4px; color: #F2F2F3; }
+    .sidebar .meta { font-size: 12px; color: #9797A0; margin-bottom: 24px; font-family: ui-monospace, monospace; }
+    .sidebar .section-label {
+      font-size: 11px; letter-spacing: 0.8px; text-transform: uppercase;
+      color: #9797A0; font-weight: 700; margin: 18px 0 8px;
+      font-family: ui-monospace, monospace;
+    }
+    .sidebar a.scrn-link {
+      display: flex; gap: 10px; padding: 10px;
+      border-radius: 8px; color: #F2F2F3; text-decoration: none;
+      margin-bottom: 6px;
+      border: 1px solid #2A2A30; background: #2A2A30;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .sidebar a.scrn-link:hover { background: #34343C; border-color: #4A6FF5; }
+    .sidebar a.scrn-link .thumb {
+      width: 36px; height: 56px; flex: 0 0 auto;
+      background: #1F1F23; border: 1px solid #4A4A52;
+      border-radius: 4px; display: flex; align-items: center; justify-content: center;
+      color: #9797A0;
+    }
+    .sidebar a.scrn-link .info { flex: 1; min-width: 0; }
+    .sidebar a.scrn-link .title {
+      font-size: 14px; font-weight: 700; margin-bottom: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .sidebar a.scrn-link .desc {
+      font-size: 11px; color: #9797A0; line-height: 1.35; font-family: ui-monospace, monospace;
+    }
+    .sidebar .footer {
+      margin-top: 32px; padding-top: 16px; border-top: 1px solid #2A2A30;
+      font-size: 11px; color: #66666F; line-height: 1.6; font-family: ui-monospace, monospace;
+    }
+    .sidebar .footer a { color: #9CB8FF; text-decoration: none; }
+    .sidebar .footer a:hover { text-decoration: underline; }
+    .sidebar .footer code { color: #FFCB6B; }
+
+    main { padding: 32px 36px 64px; overflow-x: auto; }
+    .page-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 24px; gap: 24px;
+    }
+    .page-head h2 { font-size: 22px; font-weight: 700; margin: 0; color: #223240; }
+    .page-head .hint { font-size: 13px; color: #66666F; font-family: ui-monospace, monospace; }
+    .section-block { margin-bottom: 48px; }
+    .section-title {
+      font-size: 13px; letter-spacing: 0.8px; text-transform: uppercase;
+      font-weight: 700; color: #66666F; margin: 0 0 16px;
+      padding-bottom: 8px; border-bottom: 1px solid #CECED2;
+      font-family: ui-monospace, monospace;
+    }
+    .row { display: flex; align-items: flex-start; gap: 0; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 12px; }
+    .frame-card { flex: 0 0 auto; display: flex; flex-direction: column; gap: 10px; width: 410px; }
+    .frame-card.wide { width: 720px; }
+    .frame-card .title-line { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .frame-card .ftitle { font-size: 15px; font-weight: 700; color: #223240; }
+    .frame-card .fprd { font-size: 11px; color: #66666F; font-family: ui-monospace, monospace; }
+    .frame-card .fdesc { font-size: 12px; color: #66666F; line-height: 1.5; }
+    .frame-card iframe {
+      width: 410px; height: 880px; border: 0;
+      border-radius: 14px; background: #FFFFFF;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+    .frame-card.wide iframe { width: 720px; height: 920px; }
+    .frame-card .open { font-size: 12px; color: #1B45D2; text-decoration: none; font-family: ui-monospace, monospace; }
+    .frame-card .open:hover { text-decoration: underline; }
+    .arrow {
+      flex: 0 0 auto; align-self: center;
+      width: 64px; height: 60px;
+      display: flex; align-items: center; justify-content: center;
+      color: #9797A0;
+      font-family: 'Material Symbols Outlined'; font-size: 32px;
+    }
+    .empty-main {
+      padding: 80px 32px; text-align: center; color: #9797A0;
+      background: white; border: 1px dashed #CECED2;
+      border-radius: 12px; font-family: ui-monospace, monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h1>Connect Installer</h1>
+      <div class="meta">/screens/index.html</div>
+      <div id="sidebarList"></div>
+      <div class="footer">
+        <div>📋 디자이너용 검수 페이지</div>
+        <div>화면 추가 시 <code>_screens.json</code> 갱신</div>
+        <div style="margin-top:10px;">시뮬레이터: <a href="flow.html">flow.html →</a></div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="page-head">
+        <h2>전체 화면 검수</h2>
+        <div class="hint" id="countLine"></div>
+      </div>
+      <div id="content"></div>
+    </main>
+  </div>
+
+  <script>
+    (async () => {
+      const res = await fetch('_screens.json');
+      const screens = await res.json();
+      document.getElementById('countLine').textContent = `${screens.length} screens · v5.5`;
+
+      const sb = document.getElementById('sidebarList');
+      const bySection = {};
+      screens.forEach(s => { (bySection[s.section] = bySection[s.section] || []).push(s); });
+
+      Object.entries(bySection).forEach(([section, items]) => {
+        const lbl = document.createElement('div');
+        lbl.className = 'section-label';
+        lbl.textContent = section;
+        sb.appendChild(lbl);
+        items.forEach(s => {
+          const a = document.createElement('a');
+          a.className = 'scrn-link';
+          a.href = `#${s.id}`;
+          a.innerHTML = `
+            <div class="thumb"><span style="font-family:'Material Symbols Outlined';font-size:18px;">smartphone</span></div>
+            <div class="info">
+              <div class="title">${s.title}</div>
+              <div class="desc">${s.desc}</div>
+            </div>`;
+          sb.appendChild(a);
+        });
+      });
+
+      const main = document.getElementById('content');
+      if (screens.length === 0) {
+        main.innerHTML = `<div class="empty-main">화면이 아직 없습니다. <code>_screens.json</code>에 추가하세요.</div>`;
+        return;
+      }
+
+      Object.entries(bySection).forEach(([section, items]) => {
+        const block = document.createElement('section');
+        block.className = 'section-block';
+        block.innerHTML = `<div class="section-title">${section}</div>`;
+        const row = document.createElement('div');
+        row.className = 'row';
+        items.forEach((s, i) => {
+          if (i > 0) {
+            const arrow = document.createElement('div');
+            arrow.className = 'arrow';
+            arrow.textContent = 'arrow_forward';
+            row.appendChild(arrow);
+          }
+          const card = document.createElement('div');
+          card.className = 'frame-card' + (s.id === 'ui-kit-demo' ? ' wide' : '');
+          card.id = s.id;
+          card.innerHTML = `
+            <div class="title-line">
+              <div class="ftitle">${s.title}</div>
+              <div class="fprd">${s.prd || ''}</div>
+            </div>
+            <iframe src="${s.file}" loading="lazy" title="${s.title}"></iframe>
+            <div class="fdesc">${s.desc}</div>
+            <a class="open" href="${s.file}" target="_blank">새 창에서 열기 →</a>`;
+          row.appendChild(card);
+        });
+        block.appendChild(row);
+        main.appendChild(block);
+      });
+    })();
+  </script>
+</body>
+</html>

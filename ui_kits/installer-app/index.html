@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>Connect Installer · UI Kit</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="../../colors_and_type.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #EAEAEC;
+      font-family: var(--font-sans);
+      color: var(--n-900);
+      min-height: 100vh;
+    }
+    .stage {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      padding: 32px 24px;
+    }
+    .frame-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .frame-wrap .label {
+      font-size: 13px;
+      color: var(--n-600);
+      font-weight: 700;
+    }
+    .nav {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      background: white;
+      border: 1px solid var(--n-300);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      z-index: 100;
+      min-width: 180px;
+    }
+    .nav .title {
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--n-500);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+    .nav button {
+      all: unset;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--n-700);
+      transition: background 0.12s ease;
+    }
+    .nav button:hover { background: var(--n-100); }
+    .nav button.active {
+      background: var(--primary);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <div class="title">Screens</div>
+    <button data-s="list">1. 배정 작업</button>
+    <button data-s="detail">2. 작업 상세</button>
+    <button data-s="manual">3. 설치 메뉴얼</button>
+    <button data-s="photos">4. 사진 업로드</button>
+    <button data-s="complete">5. 완료 보고</button>
+    <button data-s="offline">6. 오프라인</button>
+  </nav>
+
+  <div class="stage">
+    <div class="frame-wrap">
+      <div id="root"></div>
+      <div class="label">Connect Installer · iPhone 15</div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script src="tokens.js"></script>
+  <script type="text/babel" src="ios-frame.jsx"></script>
+  <script type="text/babel" src="Primitives.jsx"></script>
+  <script type="text/babel" src="JobListScreen.jsx"></script>
+  <script type="text/babel" src="JobDetailScreen.jsx"></script>
+  <script type="text/babel" src="ManualScreen.jsx"></script>
+  <script type="text/babel" src="PhotoScreen.jsx"></script>
+  <script type="text/babel" src="CompleteScreen.jsx"></script>
+  <script type="text/babel" src="OfflineScreen.jsx"></script>
+  <script type="text/babel" src="App.jsx"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useState, useEffect } = React;
+
+    function Shell() {
+      const [bootScreen, setBootScreen] = useState("list");
+      // key forces App remount when nav clicked
+      const [k, setK] = useState(0);
+
+      useEffect(() => {
+        const buttons = document.querySelectorAll("#nav button");
+        const update = (s) => {
+          buttons.forEach(b => b.classList.toggle("active", b.dataset.s === s));
+        };
+        update(bootScreen);
+        buttons.forEach(b => {
+          b.onclick = () => {
+            setBootScreen(b.dataset.s);
+            setK(x => x + 1);
+            update(b.dataset.s);
+          };
+        });
+      }, [bootScreen]);
+
+      return (
+        <IOSDevice width={402} height={874}>
+          <div data-screen-label="Installer App" style={{
+            width: "100%", height: "100%",
+            paddingTop: 54,   // status bar
+            paddingBottom: 34, // home indicator
+            boxSizing: "border-box",
+            display: "flex", flexDirection: "column",
+            background: window.CIT.colors.n50,
+            fontFamily: window.CIT.font.family,
+          }}>
+            <BootedApp key={k} initial={bootScreen} />
+          </div>
+        </IOSDevice>
+      );
+    }
+
+    function BootedApp({ initial }) {
+      // Hijack App's initial state by mounting a wrapper
+      return <AppWithInitial initial={initial} />;
+    }
+
+    // Re-export App as AppWithInitial which respects the nav
+    function AppWithInitial({ initial }) {
+      const { useState } = React;
+      const [screen, setScreen] = useState(initial);
+      const [job, setJob] = useState({ id: "j1", plate: "004499", customer: "주식회사아이카 · 강남 지점", address: "서울특별시 강남구 논현동 123", phone: "010-1234-5678", type: "OBD", kind: "설치", date: "2026-04-27" });
+      const [tab, setTab] = useState("jobs");
+      const [completed, setCompleted] = useState(new Set(["c1", "c2", "c3"]));
+      const [submitStatus, setSubmitStatus] = useState("idle");
+
+      const finishManual = () => { const n = new Set(completed); n.add("c4"); setCompleted(n); setScreen("detail"); };
+      const finishPhotos = () => { const n = new Set(completed); n.add("c5"); setCompleted(n); setScreen("detail"); };
+      const submit = () => { setSubmitStatus("submitting"); setTimeout(() => setSubmitStatus("success"), 900); };
+
+      if (screen === "list")     return <JobListScreen tab={tab} onTab={setTab} onSelect={(j) => { setJob(j); setScreen("detail"); }} />;
+      if (screen === "detail")   return <JobDetailScreen job={job} onBack={() => setScreen("list")} onOpenManual={() => setScreen("manual")} onOpenPhotos={() => setScreen("photos")} onComplete={() => { setSubmitStatus("idle"); setScreen("complete"); }} completedSet={completed} />;
+      if (screen === "manual")   return <ManualScreen onBack={() => setScreen("detail")} onDone={finishManual} />;
+      if (screen === "photos")   return <PhotoScreen onBack={() => setScreen("detail")} onDone={finishPhotos} />;
+      if (screen === "complete") return <CompleteScreen job={job} status={submitStatus} onBack={() => setScreen("detail")} onSubmit={submit} />;
+      if (screen === "offline")  return <OfflineScreen onBack={() => setScreen("list")} onRetry={() => setScreen("list")} />;
+      return null;
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Shell />);
+  </script>
+</body>
+</html>

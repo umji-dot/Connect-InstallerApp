@@ -1,0 +1,207 @@
+/* ==========================================================================
+   Connect Installer Design System — Colors & Typography
+   ==========================================================================
+   Field-installer mobile app (커넥트 인스톨러).
+   Built for blue-collar field technicians: 40~50대 men, gloves on, sunlight,
+   one-hand operation. Readability + big touch targets > visual flourish.
+   ========================================================================== */
+
+/* ---- Fonts ---------------------------------------------------------------- */
+@font-face {
+  font-family: "Pretendard";
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: url("./fonts/Pretendard-Light.otf") format("opentype");
+}
+@font-face {
+  font-family: "Pretendard";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("./fonts/Pretendard-Regular.otf") format("opentype");
+}
+@font-face {
+  font-family: "Pretendard";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url("./fonts/Pretendard-Medium.otf") format("opentype");
+}
+@font-face {
+  font-family: "Pretendard";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url("./fonts/Pretendard-SemiBold.otf") format("opentype");
+}
+@font-face {
+  font-family: "Pretendard";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("./fonts/Pretendard-Bold.otf") format("opentype");
+}
+@font-face {
+  font-family: "Pretendard";
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  src: url("./fonts/Pretendard-ExtraBold.otf") format("opentype");
+}
+@font-face {
+  font-family: "Pretendard";
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+  src: url("./fonts/Pretendard-Black.otf") format("opentype");
+}
+
+:root {
+  /* ---- Brand / Primary ---------------------------------------------------- */
+  /* Deep navy — primary buttons, headers, key CTAs. Reads as "trust + work".  */
+  --color-primary:        rgb(34, 50, 64);   /* #223240 */
+  --color-primary-hover:  rgb(22, 32, 41);   /* #162029 — pressed/hover */
+  --color-primary-deep:   rgb(29, 42, 56);   /* #1D2A38 — header/title bg */
+
+  /* ---- Semantic / Status ------------------------------------------------- */
+  --color-danger:         rgb(215, 34, 34);  /* #D72222 — destructive, error */
+  --color-danger-bg:      rgba(215, 34, 34, 0.08);
+  --color-danger-border:  rgb(215, 34, 34);
+  --color-danger-soft:    rgb(243, 189, 189);
+
+  --color-success:        rgb(98, 215, 100); /* #62D764 — completed, valid  */
+  --color-success-bg:     rgba(98, 215, 100, 0.10);
+  --color-success-soft:   rgb(247, 253, 247);
+
+  --color-warning:        rgb(255, 191, 0);  /* #FFBF00 — operations memo   */
+  --color-warning-bg:     rgb(255, 249, 235);
+
+  --color-info:           rgb(27, 69, 210);  /* #1B45D2 — informational     */
+
+  /* ---- Neutral scale (light) -------------------------------------------- */
+  --color-neutral-50:     rgb(249, 249, 249); /* page bg                   */
+  --color-neutral-100:    rgb(242, 242, 243); /* dividers, chip bg         */
+  --color-neutral-200:    rgb(230, 230, 230);
+  --color-neutral-300:    rgb(224, 224, 227); /* default border            */
+  --color-neutral-400:    rgb(206, 206, 210); /* placeholder text          */
+  --color-neutral-500:    rgb(151, 151, 160); /* tertiary text, disabled   */
+  --color-neutral-600:    rgb(102, 102, 111); /* secondary text, labels    */
+  --color-neutral-700:    rgb(72, 72, 81);    /* chip text                 */
+  --color-neutral-800:    rgb(34, 50, 64);    /* primary text on light     */
+  --color-neutral-900:    rgb(0, 0, 0);       /* headings                  */
+
+  /* ---- Surfaces & text (semantic, light mode) --------------------------- */
+  --bg-page:        var(--color-neutral-50);
+  --bg-surface:     #ffffff;
+  --bg-surface-alt: var(--color-neutral-100);
+  --border-default: var(--color-neutral-300);
+  --border-strong:  var(--color-neutral-800);
+
+  --fg-1: var(--color-neutral-900); /* highest-weight headings & values     */
+  --fg-2: var(--color-neutral-800); /* body text, button labels             */
+  --fg-3: var(--color-neutral-600); /* labels, secondary                    */
+  --fg-4: var(--color-neutral-500); /* placeholder, status muted            */
+  --fg-on-primary: #ffffff;
+
+  /* ---- Spacing (4px base) ---------------------------------------------- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ---- Radius ---------------------------------------------------------- */
+  --radius-sm:   4px;
+  --radius-md:   8px;   /* medium buttons, inputs ~10                       */
+  --radius-input: 10px;
+  --radius-lg:  12px;   /* cards, large buttons                             */
+  --radius-pill: 999px;
+
+  /* ---- Elevation (used sparingly — design avoids shadow) --------------- */
+  --elev-0: none;
+  --elev-1: 0 1px 2px rgba(38, 57, 73, 0.06);
+  --elev-2: 0 4px 12px rgba(38, 57, 73, 0.08);
+
+  /* ---- Type ------------------------------------------------------------ */
+  --font-sans: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+               "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+
+  /* Sizes — minimum 14px; body 16px; key info 18-20px; titles 22-24+px      */
+  --fs-display:    32px;
+  --fs-h1:         24px;
+  --fs-h2:         22px;   /* page title                                    */
+  --fs-h3:         20px;   /* header bar title, section header              */
+  --fs-body-lg:    18px;   /* sub-title / strong body                       */
+  --fs-body:       17px;   /* primary button label, list items              */
+  --fs-body-sm:    16px;   /* form inputs, labels-on-card                   */
+  --fs-caption:    15px;   /* secondary card text, badge                    */
+  --fs-micro:      14px;   /* form labels, helper text, chip                */
+
+  /* Weights */
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+
+  /* Line height — minimum 1.5 for body */
+  --lh-tight:    1.0;   /* button labels (figma 100%)                       */
+  --lh-normal:   1.5;   /* body, descriptions                               */
+
+  /* ---- Touch targets --------------------------------------------------- */
+  --touch-min:    56px;   /* enforced minimum for buttons / list rows       */
+  --touch-cozy:   64px;   /* preferred                                      */
+  --gap-touch:    12px;   /* min spacing between touch targets              */
+}
+
+/* ---- Dark mode (overrides, applied via [data-theme="dark"]) ------------- */
+[data-theme="dark"] {
+  --bg-page:        rgb(15, 22, 30);
+  --bg-surface:     rgb(22, 32, 41);
+  --bg-surface-alt: rgb(29, 42, 56);
+  --border-default: rgba(255, 255, 255, 0.12);
+  --border-strong:  rgba(255, 255, 255, 0.30);
+
+  --fg-1: rgb(255, 255, 255);
+  --fg-2: rgb(228, 228, 231);
+  --fg-3: rgb(198, 198, 201);
+  --fg-4: rgb(151, 151, 160);
+  --fg-on-primary: rgb(22, 32, 41);
+
+  --color-primary:       rgb(255, 255, 255);
+  --color-primary-hover: rgb(228, 228, 231);
+  --color-primary-deep:  rgb(34, 50, 64);
+
+  --color-success-bg:    rgba(98, 215, 100, 0.16);
+  --color-success-soft:  rgba(98, 215, 100, 0.08);
+  --color-danger-bg:     rgba(215, 34, 34, 0.20);
+  --color-warning-bg:    rgba(255, 191, 0, 0.14);
+}
+
+/* ---- Base resets & semantic tags ---------------------------------------- */
+html, body {
+  font-family: var(--font-sans);
+  color: var(--fg-2);
+  background: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, .h1 { font-size: var(--fs-h1); font-weight: var(--fw-bold); line-height: var(--lh-normal); color: var(--fg-1); }
+h2, .h2 { font-size: var(--fs-h2); font-weight: var(--fw-bold); line-height: var(--lh-normal); color: var(--fg-1); }
+h3, .h3 { font-size: var(--fs-h3); font-weight: var(--fw-bold); line-height: var(--lh-normal); color: var(--fg-1); }
+p,  .body  { font-size: var(--fs-body-sm); font-weight: var(--fw-regular); line-height: var(--lh-normal); color: var(--fg-2); }
+.body-lg   { font-size: var(--fs-body-lg); line-height: var(--lh-normal); }
+.caption   { font-size: var(--fs-caption); color: var(--fg-3); }
+.micro     { font-size: var(--fs-micro); color: var(--fg-3); }
+.label     { font-size: var(--fs-micro); color: var(--fg-3); font-weight: var(--fw-regular); }
+.value-strong { font-size: var(--fs-h2); font-weight: var(--fw-bold); color: var(--fg-1); }
+
+/* ---- Animations -------------------------------------------------------- */
+/* SKILL.md §6 예외 1번 — 무한 진행 표시 (사용처: LoadingSpinner) */
+@keyframes citspin {
+  to { transform: rotate(360deg); }
+}

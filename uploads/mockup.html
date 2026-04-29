@@ -1,0 +1,3113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>IMS.connect INSTALLER — 인스톨러 앱 프로토타입 v5.1</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════
+       IMS.connect INSTALLER Design System
+       Mobile-first, consistent with Admin CSS vars
+    ═══════════════════════════════════════════ */
+    :root {
+      --primary: #1e6fbe;
+      --primary-dark: #185a9a;
+      --primary-light: rgba(30,111,190,0.08);
+      --white: #ffffff;
+      --page-bg: #f5f6f8;
+      --card-bg: #ffffff;
+      --card-border: #e8e8e8;
+      --text-primary: #222222;
+      --text-secondary: #666666;
+      --text-muted: #999999;
+      --text-placeholder: #c8c8c8;
+      --input-border: #dededf;
+      --divider: #e0e0e0;
+      --error: #ff0000;
+      /* Status colors - matched to admin */
+      --st-pending: #f16102;
+      --st-assigned: #1e6fbe;
+      --st-completed: #15ab39;
+      --st-cancelled: #999999;
+      --st-unable: #8b5cf6;
+      /* Service type */
+      --type-install: #1d4ed8;
+      --type-install-bg: rgba(30,111,190,0.1);
+      --type-as: #b45309;
+      --type-as-bg: rgba(241,97,2,0.1);
+      --type-removal: #b91c1c;
+      --type-removal-bg: rgba(208,24,24,0.1);
+      /* Tab bar */
+      --tab-inactive: #999999;
+      --tab-active: #1e6fbe;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Pretendard', -apple-system, 'Malgun Gothic', sans-serif;
+      font-size: 14px; background: #e8e8e8; color: var(--text-primary);
+      letter-spacing: -0.01em; line-height: 1.5;
+      display: flex; justify-content: center;
+    }
+
+    /* ── Mobile Frame ── */
+    .app-frame {
+      width: 100%; max-width: 430px; min-height: 100vh;
+      background: var(--page-bg); position: relative;
+      display: flex; flex-direction: column;
+      box-shadow: 0 0 40px rgba(0,0,0,0.15);
+    }
+
+    /* ── Header ── */
+    .app-header {
+      background: var(--primary); color: var(--white);
+      padding: 0 16px; height: 56px; display: flex; align-items: center;
+      justify-content: center; position: sticky; top: 0; z-index: 100;
+      flex-shrink: 0;
+    }
+    .app-header .back-btn {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+      background: none; border: none; color: white; font-size: 22px; cursor: pointer;
+    }
+    .app-header .header-title {
+      font-size: 17px; font-weight: 600; text-align: center;
+    }
+
+    /* ── Content Area ── */
+    .app-content {
+      flex: 1; overflow-y: auto; padding-bottom: 64px;
+    }
+
+    /* ── Bottom Tab Bar ── */
+    .tab-bar {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px; height: 64px;
+      background: var(--white); border-top: 1px solid var(--divider);
+      display: flex; z-index: 100;
+    }
+    .tab-bar-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 4px; cursor: pointer;
+      color: var(--tab-inactive); transition: color 0.2s;
+      background: none; border: none; font-family: inherit;
+    }
+    .tab-bar-item.active { color: var(--tab-active); }
+    .tab-bar-item svg { width: 24px; height: 24px; }
+    .tab-bar-item span { font-size: 11px; font-weight: 600; }
+
+    /* ── Search Bar ── */
+    .search-bar {
+      padding: 12px 16px;
+    }
+    .search-input-wrap {
+      display: flex; align-items: center; background: var(--white);
+      border: 1px solid var(--input-border); border-radius: 8px;
+      padding: 0 12px; height: 44px;
+    }
+    .search-input-wrap svg { width: 20px; height: 20px; color: var(--text-muted); flex-shrink: 0; margin-right: 8px; }
+    .search-input-wrap input {
+      flex: 1; border: none; outline: none; font-size: 14px;
+      font-family: inherit; color: var(--text-primary); background: transparent;
+    }
+    .search-input-wrap input::placeholder { color: var(--text-placeholder); }
+
+    /* ── List Cards ── */
+    .list-section { padding: 0 16px; }
+    .list-card {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 12px; padding: 16px; margin-bottom: 10px;
+      cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .list-card:active { transform: scale(0.98); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    .list-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .list-card-vehicle { font-size: 17px; font-weight: 700; color: var(--text-primary); font-family: 'Courier New', 'Pretendard', monospace; }
+    .list-card-info { display: flex; flex-direction: column; gap: 2px; }
+    .list-card-sub { font-size: 13px; color: var(--text-secondary); }
+    .list-card-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+    .list-card-date { font-size: 12px; color: var(--text-muted); }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap;
+    }
+    .b-install { background: var(--type-install-bg); color: var(--type-install); }
+    .b-as { background: var(--type-as-bg); color: var(--type-as); }
+    .b-removal { background: var(--type-removal-bg); color: var(--type-removal); }
+    .b-completed { background: rgba(21,171,57,0.12); color: var(--st-completed); }
+    .b-unable { background: rgba(139,92,246,0.12); color: var(--st-unable); }
+    .b-pending { background: rgba(241,97,2,0.12); color: var(--st-pending); }
+    .b-assigned { background: rgba(30,111,190,0.12); color: var(--st-assigned); }
+    .b-cancelled { background: #f0f0f0; color: var(--st-cancelled); }
+
+    /* ── Detail View ── */
+    .detail-view { display: none; }
+    .detail-view.active { display: block; }
+
+    .detail-section {
+      background: var(--card-bg); border-radius: 12px;
+      margin: 12px 16px; padding: 20px 16px;
+      border: 1px solid var(--card-border);
+    }
+    .detail-section-title {
+      font-size: 13px; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;
+    }
+    .detail-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { font-size: 14px; color: var(--text-secondary); }
+    .detail-value { font-size: 14px; font-weight: 600; color: var(--text-primary); text-align: right; }
+
+    /* ── Buttons ── */
+    .btn-full {
+      display: flex; align-items: center; justify-content: center;
+      width: calc(100% - 32px); margin: 12px 16px; height: 52px;
+      border-radius: 12px; font-size: 16px; font-weight: 700;
+      cursor: pointer; border: none; font-family: inherit;
+      transition: opacity 0.15s; -webkit-tap-highlight-color: transparent;
+    }
+    .btn-full:active { opacity: 0.8; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-danger { background: #dc2626; color: white; }
+    .btn-outline {
+      background: white; color: var(--text-secondary);
+      border: 1px solid var(--input-border);
+    }
+    .btn-gray { background: #e5e7eb; color: var(--text-secondary); }
+    .btn-disabled { background: #d1d5db; color: #9ca3af; pointer-events: none; }
+    .btn-row {
+      display: flex; gap: 8px; padding: 0 16px; margin: 12px 0;
+    }
+    .btn-row .btn-half {
+      flex: 1; height: 52px; border-radius: 12px; font-size: 16px; font-weight: 700;
+      cursor: pointer; border: none; font-family: inherit;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-row .btn-half:active { opacity: 0.8; }
+
+    /* ── Wizard Steps ── */
+    .wizard-progress {
+      display: flex; align-items: center; padding: 12px 16px; gap: 4px;
+    }
+    .wizard-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #d1d5db;
+      transition: background 0.2s;
+    }
+    .wizard-dot.active { background: var(--primary); width: 24px; border-radius: 4px; }
+    .wizard-dot.done { background: var(--st-completed); }
+    .wizard-step-label {
+      font-size: 12px; color: var(--text-muted); padding: 0 16px 4px;
+    }
+
+    /* ── Device Grid ── */
+    .device-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      padding: 0 16px; margin-bottom: 16px;
+    }
+    .device-btn {
+      height: 56px; border-radius: 10px; border: 2px solid var(--input-border);
+      background: white; font-size: 13px; font-weight: 600; color: var(--text-primary);
+      cursor: pointer; font-family: inherit; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .device-btn:active, .device-btn.selected {
+      border-color: var(--primary); background: var(--primary-light); color: var(--primary);
+    }
+
+    /* ── Form Inputs ── */
+    .form-group {
+      padding: 0 16px; margin-bottom: 16px;
+    }
+    .form-label {
+      font-size: 13px; font-weight: 600; color: var(--text-secondary);
+      margin-bottom: 6px; display: block;
+    }
+    .form-label .req { color: var(--error); }
+    .form-input {
+      width: 100%; height: 48px; border: 1px solid var(--input-border);
+      border-radius: 10px; padding: 0 14px; font-size: 15px;
+      font-family: inherit; color: var(--text-primary); outline: none; background: white;
+    }
+    .form-input:focus { border-color: var(--primary); }
+    .form-input::placeholder { color: var(--text-placeholder); }
+
+    /* ── Toggle Switch ── */
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; background: white; margin: 0 16px 2px;
+      border-radius: 10px; border: 1px solid var(--card-border);
+    }
+    .toggle-row-label { font-size: 15px; font-weight: 500; }
+    .toggle-row-sub { font-size: 12px; color: var(--text-muted); }
+    .toggle {
+      width: 52px; height: 30px; border-radius: 15px;
+      background: #d1d5db; position: relative; cursor: pointer;
+      transition: background 0.2s; flex-shrink: 0;
+    }
+    .toggle.on { background: var(--primary); }
+    .toggle::after {
+      content: ''; width: 26px; height: 26px; border-radius: 50%;
+      background: white; position: absolute; top: 2px; left: 2px;
+      transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle.on::after { transform: translateX(22px); }
+
+    /* ── Photo Upload ── */
+    .photo-upload {
+      background: var(--card-bg); border: 2px dashed var(--input-border);
+      border-radius: 12px; margin: 0 16px 10px; padding: 20px 16px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      cursor: pointer; position: relative;
+    }
+    .photo-upload svg.photo-icon { width: 42px; height: 42px; color: var(--text-muted); }
+    .photo-upload .photo-label { font-size: 14px; font-weight: 600; color: var(--text-primary); text-align: center; }
+    .photo-upload .photo-sub { font-size: 11px; color: var(--text-muted); text-align: center; }
+    .photo-upload .photo-btn-row { display: flex; gap: 6px; width: 100%; justify-content: center; }
+    .photo-upload-btn {
+      height: 40px; padding: 0 18px; border-radius: 8px;
+      background: var(--primary); color: white; border: none;
+      font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+      flex: 1; max-width: 160px;
+    }
+    .photo-upload-btn.attach { background: #64748b; }
+    .photo-upload-btn.retake { background: #f59e0b; }
+    .photo-upload.captured { border-color: var(--st-completed); border-style: solid; background: rgba(21,171,57,0.04); padding: 14px 14px; }
+    .photo-upload.captured svg.photo-icon { display: none; }
+    .photo-upload .photo-preview {
+      width: 120px; height: 90px; border-radius: 8px; background: #e8e8e8;
+      display: none; align-items: center; justify-content: center;
+      color: var(--st-completed); font-size: 36px; border: 2px solid var(--st-completed);
+      position: relative; overflow: hidden;
+    }
+    .photo-upload.captured .photo-preview { display: flex; }
+    .photo-upload .photo-preview::after {
+      content: '촬영됨'; position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(21,171,57,0.85); color: white; font-size: 10px;
+      padding: 2px 0; font-weight: 600;
+    }
+    .photo-req-badge {
+      display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 6px;
+      border-radius: 4px; margin-left: 4px; vertical-align: middle;
+    }
+    .photo-req-badge.req { background: #fee2e2; color: #b91c1c; }
+    .photo-req-badge.opt { background: #e0e7ff; color: #3730a3; }
+    .photo-req-badge.req-nobd { background: #ede9fe; color: #6d28d9; }
+    .photo-mode-banner {
+      margin: 0 16px 12px; padding: 10px 14px; border-radius: 10px;
+      font-size: 12px; font-weight: 500; line-height: 1.5;
+    }
+    .photo-mode-banner.first { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+    .photo-mode-banner.rework { background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; }
+
+    /* ── Checklist ── */
+    .checklist { padding: 0 16px; }
+    .check-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; background: white; border-radius: 10px;
+      margin-bottom: 8px; border: 1px solid var(--card-border);
+      cursor: pointer;
+    }
+    .check-item.done { border-color: var(--st-completed); background: rgba(21,171,57,0.04); }
+    .check-circle {
+      width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--input-border);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 14px; color: transparent; transition: all 0.2s;
+    }
+    .check-item.done .check-circle {
+      background: var(--st-completed); border-color: var(--st-completed); color: white;
+    }
+    .check-text { font-size: 14px; font-weight: 500; flex: 1; }
+    .check-status { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .check-item.done .check-status { color: var(--st-completed); }
+
+    /* ── Placeholder Image ── */
+    .placeholder-img {
+      margin: 12px 16px; height: 280px; background: #f0f2f5;
+      border-radius: 12px; border: 1px solid var(--card-border);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; color: var(--text-muted);
+    }
+    .placeholder-img svg { width: 48px; height: 48px; }
+    .placeholder-img .ph-title { font-size: 15px; font-weight: 600; color: var(--text-secondary); }
+    .placeholder-img .ph-sub { font-size: 12px; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 500; justify-content: center; align-items: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white; border-radius: 16px; width: calc(100% - 48px);
+      max-width: 380px; padding: 28px 24px; text-align: center;
+    }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .modal-msg { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6; }
+    .modal-btns { display: flex; gap: 8px; }
+    .modal-btn {
+      flex: 1; height: 48px; border-radius: 10px; font-size: 15px; font-weight: 600;
+      cursor: pointer; border: none; font-family: inherit;
+    }
+    .modal-btn.cancel { background: #e5e7eb; color: var(--text-secondary); }
+    .modal-btn.confirm { background: var(--primary); color: white; }
+    .modal-btn.danger { background: #dc2626; color: white; }
+
+    /* ── Textarea ── */
+    .form-textarea {
+      width: 100%; min-height: 100px; border: 1px solid var(--input-border);
+      border-radius: 10px; padding: 14px; font-size: 14px; font-family: inherit;
+      color: var(--text-primary); outline: none; resize: vertical;
+    }
+    .form-textarea:focus { border-color: var(--primary); }
+
+    /* ── History Filter ── */
+    .filter-row {
+      display: flex; gap: 8px; padding: 8px 16px 0;
+    }
+    .filter-select {
+      height: 40px; border: 1px solid var(--input-border); border-radius: 8px;
+      padding: 0 12px; font-size: 14px; font-family: inherit;
+      color: var(--text-primary); background: white; outline: none; flex: 1;
+    }
+
+    /* ── Validation Progress ── */
+    .validation-list { padding: 0 16px; }
+    .val-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; background: white; border-radius: 10px;
+      margin-bottom: 6px; border: 1px solid var(--card-border);
+    }
+    .val-icon {
+      width: 28px; height: 28px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;
+    }
+    .val-icon.pending { background: #f0f0f0; color: var(--text-muted); }
+    .val-icon.running { background: rgba(30,111,190,0.12); color: var(--primary); }
+    .val-icon.done { background: rgba(21,171,57,0.12); color: var(--st-completed); }
+    .val-icon.fail { background: rgba(220,38,38,0.12); color: #dc2626; }
+    .val-text { font-size: 14px; font-weight: 500; flex: 1; }
+    .val-status { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .val-item.done .val-status { color: var(--st-completed); }
+
+    /* ── Spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { width: 16px; height: 16px; border: 2px solid var(--primary-light); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+    /* ── History Detail ── */
+    .history-photos {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+      padding: 0 16px; margin-bottom: 16px;
+    }
+    .history-photo-thumb {
+      aspect-ratio: 1; background: #f0f2f5; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: var(--text-muted); border: 1px solid var(--card-border);
+    }
+
+    /* ── AS Checklist Item ── */
+    .as-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px; background: white; border-radius: 10px;
+      margin: 0 16px 8px; border: 1px solid var(--card-border); cursor: pointer;
+    }
+    .as-item.done { border-color: var(--st-completed); background: rgba(21,171,57,0.04); }
+    .as-checkbox {
+      width: 24px; height: 24px; border-radius: 6px; border: 2px solid var(--input-border);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 14px; color: transparent;
+    }
+    .as-item.done .as-checkbox {
+      background: var(--st-completed); border-color: var(--st-completed); color: white;
+    }
+    .as-text { font-size: 14px; font-weight: 500; flex: 1; }
+
+    /* ── Transitions ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .fade-in { animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Scrollbar hide for mobile feel ── */
+    .app-content::-webkit-scrollbar { width: 0; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      padding: 60px 16px; text-align: center; color: var(--text-muted);
+    }
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ── Admin Memo (운영팀 메모) ── */
+    .admin-memo {
+      background: #FFF9E6; border: 1px solid #FFE082; border-radius: 10px;
+      margin: 0 16px 12px; padding: 14px 16px;
+    }
+    .admin-memo-header {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+      font-size: 13px; font-weight: 600; color: #b45309;
+    }
+    .admin-memo-text {
+      font-size: 14px; color: var(--text-primary); line-height: 1.6;
+    }
+
+    /* ── Task List (작업 목록) ── */
+    .task-list-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px; background: white; border-radius: 10px;
+      margin: 0 16px 8px; border: 1px solid var(--card-border); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .task-list-item:active { transform: scale(0.98); }
+    .task-list-item.done { border-color: var(--st-completed); background: rgba(21,171,57,0.04); }
+    .task-checkbox {
+      width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--input-border);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 14px; color: transparent; transition: all 0.2s;
+    }
+    .task-list-item.done .task-checkbox {
+      background: var(--st-completed); border-color: var(--st-completed); color: white;
+    }
+    .task-text { font-size: 15px; font-weight: 600; flex: 1; }
+    .task-status { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .task-list-item.done .task-status { color: var(--st-completed); }
+
+    /* ── Verification Result (검증 결과) ── */
+    .verify-grid {
+      display: grid; grid-template-columns: 1fr; gap: 8px;
+      padding: 0 16px; margin-bottom: 16px;
+    }
+    .verify-card {
+      background: white; border: 1px solid var(--card-border); border-radius: 10px;
+      padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .verify-card-label { font-size: 13px; color: var(--text-secondary); }
+    .verify-card-value { font-size: 14px; font-weight: 600; color: var(--text-primary); text-align: right; }
+    .verify-card-value.pass { color: var(--st-completed); }
+    .verify-card-value.fail { color: #dc2626; }
+    .verify-warning {
+      background: #FFF5F5; border: 1px solid #FCA5A5; border-radius: 10px;
+      margin: 0 16px 12px; padding: 14px 16px;
+      font-size: 13px; color: #dc2626; font-weight: 600; text-align: center;
+      line-height: 1.5;
+    }
+    .gps-checkbox-wrap {
+      display: flex; align-items: flex-start; gap: 8px;
+      margin-top: 8px; padding: 10px 12px; background: #FFF5F5; border-radius: 8px;
+      cursor: pointer;
+    }
+    .gps-checkbox-wrap input[type="checkbox"] {
+      width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; cursor: pointer;
+    }
+    .gps-checkbox-wrap label {
+      font-size: 12px; color: #dc2626; cursor: pointer; line-height: 1.4;
+    }
+
+    /* ── v5.3: 검증 액션 안내 팝업 (시동 ON/OFF) ── */
+    .verify-popup-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+      z-index: 600; justify-content: center; align-items: flex-end;
+      padding-bottom: 32px;
+    }
+    .verify-popup-overlay.open { display: flex; }
+    .verify-popup {
+      background: white; border-radius: 20px 20px 20px 20px;
+      width: calc(100% - 32px); max-width: 414px;
+      padding: 28px 24px 24px; text-align: center;
+      animation: slideUp 0.25s ease-out;
+    }
+    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .verify-popup-icon { font-size: 48px; margin-bottom: 14px; display: block; }
+    .verify-popup-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary); }
+    .verify-popup-body {
+      font-size: 13px; color: var(--text-secondary); line-height: 1.75; margin-bottom: 20px;
+      background: #f8fafc; border-radius: 10px; padding: 14px 16px; text-align: left;
+    }
+    .verify-popup-body ul { padding-left: 18px; margin: 6px 0 0; }
+    .verify-popup-body li { margin-bottom: 4px; }
+    .verify-popup-btns { display: flex; gap: 8px; }
+    .verify-popup-btn {
+      flex: 1; height: 52px; border-radius: 12px; font-size: 15px; font-weight: 700;
+      cursor: pointer; border: none; font-family: inherit; transition: opacity 0.15s;
+    }
+    .verify-popup-btn:active { opacity: 0.8; }
+    .verify-popup-btn.primary { background: var(--primary); color: white; }
+    .verify-popup-btn.danger  { background: #dc2626; color: white; }
+    .verify-popup-btn.gray    { background: #e5e7eb; color: var(--text-secondary); }
+    .verify-popup-btn.retry   { background: #f59e0b; color: white; }
+    .verify-popup-step-badge {
+      display: inline-block; background: #e0f2fe; color: #0369a1;
+      font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 20px; margin-bottom: 10px;
+    }
+    .verify-popup-img-placeholder {
+      background: #f1f5f9; border: 2px dashed #cbd5e1; border-radius: 12px;
+      height: 120px; display: flex; align-items: center; justify-content: center;
+      color: #94a3b8; font-size: 12px; margin-bottom: 10px; text-align: center;
+      line-height: 1.5; white-space: pre-line;
+    }
+    .verify-popup-wait-state {
+      background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;
+      padding: 8px 12px; margin: -8px 0 12px; font-size: 12px; color: #92400e; text-align: center;
+    }
+    .verify-popup-firmware {
+      background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px;
+      padding: 12px 14px; margin-bottom: 12px; text-align: left; font-size: 12px;
+      color: #166534; line-height: 1.9;
+    }
+
+    /* ── v5.3: 검증 시나리오 시뮬레이션 바 ── */
+    .scenario-bar {
+      margin: 0 16px 8px; padding: 10px 12px; background: #f8fafc;
+      border-radius: 8px; border: 1px solid #e2e8f0;
+    }
+    .scenario-bar-title { font-size: 10px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; letter-spacing: 0.03em; }
+    .scenario-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+    .scenario-btn {
+      padding: 5px 9px; font-size: 10.5px; font-weight: 600; border-radius: 5px;
+      border: 1px solid #cbd5e1; background: white; color: var(--text-secondary);
+      cursor: pointer; font-family: inherit; white-space: nowrap; transition: all 0.1s;
+    }
+    .scenario-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .scenario-btn.active-err { background: #dc2626; color: white; border-color: #dc2626; }
+  </style>
+</head>
+<body>
+
+<div class="app-frame">
+  <!-- ═══════ HEADER ═══════ -->
+  <div class="app-header" id="appHeader">
+    <button class="back-btn" id="backBtn" style="display:none;" onclick="goBack()">&#8592;</button>
+    <div class="header-title" id="headerTitle">배정 작업</div>
+  </div>
+
+  <!-- ═══════ CONTENT ═══════ -->
+  <div class="app-content" id="appContent">
+
+    <!-- ─── TAB 1: 배정 작업 목록 ─── -->
+    <div class="screen active" id="screenList">
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="searchList" placeholder="차량번호, 업체명, 지점명 검색" oninput="filterList()">
+        </div>
+      </div>
+      <div class="list-section" id="assignedList"></div>
+    </div>
+
+    <!-- ─── DETAIL: 차량정보 (Step 0) ─── v4.0: 작업 주소·업체 담당자 연락처 표시 -->
+    <div class="screen" id="screenDetail">
+      <!-- v4.0: 임시 등록 차량 안내 배너 -->
+      <div id="detTempBanner" style="display:none;margin:12px 16px 0;padding:12px 14px;background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;">
+        <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:4px;">⚠ 임시 등록 차량 (차량번호 미확정)</div>
+        <div style="font-size:12px;color:#92400e;line-height:1.5;">본 건은 운영팀이 차량 정보 미확정 상태로 등록한 임시 건입니다. 작업 시작 시 안내가 표시됩니다.</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">차량 정보</div>
+        <div class="detail-row"><span class="detail-label">차량번호</span><span class="detail-value" id="detVehicle"></span></div>
+        <!-- v5.0: 차종(차량모델) 표시 -->
+        <div class="detail-row"><span class="detail-label">차종</span><span class="detail-value" id="detCarModel" style="color:var(--primary);font-weight:600;"></span></div>
+        <div class="detail-row"><span class="detail-label">업체명</span><span class="detail-value" id="detCompany"></span></div>
+        <div class="detail-row"><span class="detail-label">지점명</span><span class="detail-value" id="detBranch"></span></div>
+        <div class="detail-row"><span class="detail-label">서비스 유형</span><span class="detail-value" id="detType"></span></div>
+        <div class="detail-row"><span class="detail-label">설치형태</span><span class="detail-value" id="detInstallType"></span></div>
+        <div class="detail-row" id="detDateRow"><span class="detail-label">작업 요청일</span><span class="detail-value" id="detDate"></span></div>
+      </div>
+      <!-- v4.0 신규: 작업 주소 + 업체 담당자 연락처 -->
+      <div class="detail-section" style="background:#f0f7ff;border:1px solid #bdd7ee;border-radius:8px;margin:0 16px 12px;padding:12px 14px;">
+        <div class="detail-section-title" style="margin-bottom:6px;color:#1e6fbe;">현장 정보 <span style="font-size:10px;background:#dbeafe;color:#1e40af;padding:1px 6px;border-radius:999px;font-weight:500;">v4.0 신규</span></div>
+        <div class="detail-row"><span class="detail-label">작업 주소</span><span class="detail-value" id="detAddress" style="font-size:13px;line-height:1.5;text-align:right;">서울 강남구 논현동 123</span></div>
+        <div class="detail-row"><span class="detail-label">업체 담당자</span><a id="detContact" href="tel:01012345678" class="detail-value" style="color:#1e6fbe;text-decoration:underline;font-weight:600;">010-1234-5678</a></div>
+        <div style="font-size:11px;color:#1e6fbe;margin-top:4px;">📞 연락처를 탭하면 전화 다이얼러로 직접 연결됩니다.</div>
+      </div>
+      <!-- 운영팀 메모 -->
+      <div class="admin-memo" id="detAdminMemo" style="display:none;">
+        <div class="admin-memo-header">&#128203; 운영팀 메모</div>
+        <div class="admin-memo-text" id="detAdminMemoText"></div>
+      </div>
+      <div id="detAsInfo" style="display:none;">
+        <div class="detail-section">
+          <div class="detail-section-title">AS 요청사항</div>
+          <div id="detAsItems"></div>
+        </div>
+      </div>
+      <!-- v3.3: 설치형태 변경 시 작업 초기화 안내 -->
+      <div style="margin:0 16px 12px;padding:10px 14px;background:#f0f7ff;border:1px solid #bdd7ee;border-radius:8px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">&#9432;</span>
+        <span style="font-size:12px;color:#1e6fbe;line-height:1.4;">설치형태 변경 시 작업 초기화 후 재진행</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn-half" style="background:#dc2626;color:white;" onclick="showUnableModal()">작업 불가</button>
+        <button class="btn-half" style="background:var(--primary);color:white;" onclick="startWork()">작업 시작</button>
+      </div>
+    </div>
+
+    <!-- ─── 설치 작업 목록 (NEW) ─── -->
+    <div class="screen" id="screenInstallTaskList">
+      <div class="wizard-step-label" style="padding-top:12px;">설치 작업 목록</div>
+      <div class="detail-section" style="padding:12px 16px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">항목을 눌러 작업을 진행하세요. 모든 작업 완료 후 검증을 진행합니다.</div>
+      </div>
+      <div id="installTaskItems"></div>
+      <button class="btn-full btn-disabled" id="btnInstallVerify" onclick="startVerification()">검증하기</button>
+    </div>
+
+    <!-- ─── INSTALL FLOW ─── -->
+    <!-- Step 1: 단말기 선택 -->
+    <div class="screen" id="screenDevice">
+      <div class="wizard-progress" id="wizProgress1"></div>
+      <div class="wizard-step-label">단말기를 선택해주세요</div>
+      <div class="detail-section" style="margin-bottom:8px;">
+        <div class="detail-section-title" style="margin-bottom:4px;">선택한 모델</div>
+        <div id="selectedDeviceLabel" style="font-size:16px;font-weight:700;color:var(--primary);">—</div>
+      </div>
+      <div class="device-grid" id="deviceGrid"></div>
+      <button class="btn-full btn-primary" id="btnDeviceNext" onclick="installStep(2)" style="opacity:0.4;pointer-events:none;">다음</button>
+    </div>
+
+    <!-- Step 2: 설정 페이지 -->
+    <div class="screen" id="screenSettings">
+      <div class="wizard-progress" id="wizProgress2"></div>
+      <div class="wizard-step-label">설정 정보 입력</div>
+      <div class="form-group">
+        <label class="form-label">일련번호 <span class="req">*</span></label>
+        <!-- v4.0 신규: 일련번호 인풋 옆 [Non-OBD 호출] 버튼 (v4.2: 차량 설치형태가 Non-OBD인 경우에만 노출) -->
+        <div style="display:flex;gap:6px;" id="snInputWrap">
+          <input class="form-input" id="inputSN" placeholder="일련번호를 입력하세요" style="flex:1;">
+          <button type="button" id="btnNonObdCall" onclick="callNonObd()" style="display:none;flex-shrink:0;height:44px;padding:0 12px;background:#7c3aed;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">Non-OBD 호출</button>
+        </div>
+        <div id="nonObdResult" style="display:none;margin-top:6px;padding:8px 12px;border-radius:6px;font-size:12px;"></div>
+        <div id="nonObdHint" style="display:none;font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.4;">v4.0 신규 — 차량 설치형태가 <strong>Non-OBD</strong>인 경우에만 노출. 단말기 모드를 Non-OBD로 변환하며, 검증 단계가 시동 ON/OFF 테스트로 전환됩니다. (단말기 단위 변환, 차량 데이터에는 영향 없음)</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">총 주행거리 (km) <span class="req">*</span></label>
+        <input class="form-input" id="inputMileage" type="number" placeholder="0" value="0">
+      </div>
+      <!-- v3.1: 디지털차키/시동잠금 읽기 전용 (기사 수정 불가) -->
+      <div style="margin-bottom:8px;">
+        <div class="toggle-row" style="border-radius:10px 10px 0 0; margin-bottom:0; opacity:0.7;">
+          <div>
+            <div class="toggle-row-label">디지털 차키 <span style="font-size:11px;color:#999;margin-left:4px;">읽기전용</span></div>
+            <div class="toggle-row-sub" id="dkeyLabel">미설치</div>
+          </div>
+          <div class="toggle disabled" id="toggleDkey" style="pointer-events:none;opacity:0.5;"></div>
+        </div>
+        <div class="toggle-row" style="border-radius:0 0 10px 10px; opacity:0.7;">
+          <div>
+            <div class="toggle-row-label">시동 잠금 <span style="font-size:11px;color:#999;margin-left:4px;">읽기전용</span></div>
+            <div class="toggle-row-sub" id="slockLabel">미설치</div>
+          </div>
+          <div class="toggle on disabled" id="toggleSlock" style="pointer-events:none;opacity:0.5;"></div>
+        </div>
+        <div style="padding:8px 16px;background:#fff8e1;border-radius:8px;margin-top:4px;font-size:12px;color:#b45309;">
+          ⚠ 디지털 차키·시동 잠금 설정은 운영팀을 통해 어드민에서 수정 가능합니다.
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:16px;">
+        <button class="btn-half" style="background:#e5e7eb;color:var(--text-secondary);" onclick="installStep(1)">이전</button>
+        <!-- v5.0: Non-OBD 차량에서 [Non-OBD 호출] 미완료 시 비활성화 -->
+        <button class="btn-half" id="btnSettingsNext" style="background:var(--primary);color:white;" onclick="tryInstallStep3()">다음</button>
+      </div>
+      <div id="nonObdHintBox" style="display:none;margin:4px 16px 0;padding:8px 12px;background:#fef3c7;border-left:3px solid #f59e0b;border-radius:4px;font-size:11.5px;color:#92400e;line-height:1.5;">
+        ⚠ 본 차량은 Non-OBD 설치형태입니다. [Non-OBD 호출]을 먼저 진행해 주세요. (v5.0)
+      </div>
+    </div>
+
+    <!-- Step 3: 상시전원 인가 차량 이미지 (v5.1: 어드민 설치 매뉴얼 관리 연동) -->
+    <div class="screen" id="screenConstPower">
+      <div class="wizard-progress" id="wizProgress3"></div>
+      <div class="wizard-step-label">상시전원 인가 차량</div>
+      <!-- v5.1 proto: 이미지 있음/없음 케이스 전환 토글 -->
+      <div style="margin:0 16px 8px;display:flex;gap:6px;align-items:center;">
+        <span style="font-size:10px;color:var(--text-muted);font-weight:500;">케이스 미리보기:</span>
+        <button onclick="toggleImgCase('constPower','img')" style="flex:1;padding:5px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #6ee7b7;background:#d1fae5;color:#065f46;cursor:pointer;">이미지 있음</button>
+        <button onclick="toggleImgCase('constPower','none')" style="flex:1;padding:5px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #fbbf24;background:#fef3c7;color:#92400e;cursor:pointer;">이미지 없음</button>
+      </div>
+      <!-- 이미지 있는 경우 -->
+      <div id="constPowerImgArea" class="placeholder-img">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+        <div class="ph-title">상시전원 인가 차량 이미지</div>
+        <div class="ph-sub">어드민 설치 매뉴얼 관리 메뉴 연동 이미지</div>
+      </div>
+      <!-- v5.1: 이미지 미연동 시 공통 fallback UI (이미지 유무는 설치형태 무관, 어드민 등록 여부로 결정) -->
+      <div id="constPowerFallback" style="display:none;margin:0 16px;">
+        <div style="padding:24px 20px;background:#fff8e1;border:1px solid #fbbf24;border-radius:12px;text-align:center;">
+          <div style="font-size:36px;margin-bottom:12px;">&#9888;</div>
+          <div style="font-size:14px;font-weight:600;color:#92400e;margin-bottom:8px;">연동 이미지 없음</div>
+          <div style="font-size:13px;color:#b45309;line-height:1.6;">
+            해당 차량에 대한 상시전원 인가 안내 이미지가<br>등록되지 않았습니다.<br><strong>운영팀에 문의</strong>해 주세요.
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-half" style="background:#e5e7eb;color:var(--text-secondary);" onclick="installStep(2)">이전</button>
+        <button class="btn-half" style="background:var(--primary);color:white;" onclick="installStep(4)">다음</button>
+      </div>
+    </div>
+
+    <!-- Step 4: 설치 매뉴얼 이미지 (v5.1: 어드민 설치 매뉴얼 관리 연동) -->
+    <div class="screen" id="screenManual">
+      <div class="wizard-progress" id="wizProgress4"></div>
+      <div class="wizard-step-label">설치 매뉴얼</div>
+      <!-- v5.1 proto: 이미지 있음/없음 케이스 전환 토글 -->
+      <div style="margin:0 16px 8px;display:flex;gap:6px;align-items:center;">
+        <span style="font-size:10px;color:var(--text-muted);font-weight:500;">케이스 미리보기:</span>
+        <button onclick="toggleImgCase('manual','img')" style="flex:1;padding:5px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #6ee7b7;background:#d1fae5;color:#065f46;cursor:pointer;">이미지 있음</button>
+        <button onclick="toggleImgCase('manual','none')" style="flex:1;padding:5px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #fbbf24;background:#fef3c7;color:#92400e;cursor:pointer;">이미지 없음</button>
+      </div>
+      <!-- 이미지 있는 경우 -->
+      <div id="manualImgArea" class="placeholder-img">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+        <div class="ph-title">설치 매뉴얼 이미지</div>
+        <div class="ph-sub">어드민 설치 매뉴얼 관리 메뉴 연동 이미지</div>
+      </div>
+      <!-- v5.1: 이미지 미연동 시 공통 fallback UI -->
+      <div id="manualFallback" style="display:none;margin:0 16px;">
+        <div style="padding:24px 20px;background:#fff8e1;border:1px solid #fbbf24;border-radius:12px;text-align:center;">
+          <div style="font-size:36px;margin-bottom:12px;">&#9888;</div>
+          <div style="font-size:14px;font-weight:600;color:#92400e;margin-bottom:8px;">연동 이미지 없음</div>
+          <div style="font-size:13px;color:#b45309;line-height:1.6;">
+            해당 차량에 대한 설치 매뉴얼 이미지가<br>등록되지 않았습니다.<br><strong>운영팀에 문의</strong>해 주세요.
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-half" style="background:#e5e7eb;color:var(--text-secondary);" onclick="installStep(3)">이전</button>
+        <button class="btn-half" style="background:var(--primary);color:white;" onclick="installStep(5)">다음</button>
+      </div>
+    </div>
+
+    <!-- Step 5: 컴포넌트 이미지 (v5.1: 어드민 설치 매뉴얼 관리 연동) -->
+    <div class="screen" id="screenComponent">
+      <div class="wizard-progress" id="wizProgress5"></div>
+      <div class="wizard-step-label">컴포넌트 이미지</div>
+      <!-- v5.1 proto: 이미지 있음/없음 케이스 전환 토글 -->
+      <div style="margin:0 16px 8px;display:flex;gap:6px;align-items:center;">
+        <span style="font-size:10px;color:var(--text-muted);font-weight:500;">케이스 미리보기:</span>
+        <button onclick="toggleImgCase('component','img')" style="flex:1;padding:5px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #6ee7b7;background:#d1fae5;color:#065f46;cursor:pointer;">이미지 있음</button>
+        <button onclick="toggleImgCase('component','none')" style="flex:1;padding:5px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #fbbf24;background:#fef3c7;color:#92400e;cursor:pointer;">이미지 없음</button>
+      </div>
+      <!-- 이미지 있는 경우 -->
+      <div id="componentImgArea" class="placeholder-img">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+        <div class="ph-title">컴포넌트 이미지</div>
+        <div class="ph-sub">어드민 설치 매뉴얼 관리 메뉴 연동 이미지</div>
+      </div>
+      <!-- v5.1: 이미지 미연동 시 공통 fallback UI -->
+      <div id="componentFallback" style="display:none;margin:0 16px;">
+        <div style="padding:24px 20px;background:#fff8e1;border:1px solid #fbbf24;border-radius:12px;text-align:center;">
+          <div style="font-size:36px;margin-bottom:12px;">&#9888;</div>
+          <div style="font-size:14px;font-weight:600;color:#92400e;margin-bottom:8px;">연동 이미지 없음</div>
+          <div style="font-size:13px;color:#b45309;line-height:1.6;">
+            해당 차량에 대한 컴포넌트 이미지가<br>등록되지 않았습니다.<br><strong>운영팀에 문의</strong>해 주세요.
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-half" style="background:#e5e7eb;color:var(--text-secondary);" onclick="installStep(4)">이전</button>
+        <button class="btn-half" style="background:var(--primary);color:white;" onclick="installStep(6)">다음</button>
+      </div>
+    </div>
+
+    <!-- Step 6: 커넥터 이미지 (v5.1: 어드민 설치 매뉴얼 관리 연동) -->
+    <div class="screen" id="screenConnector">
+      <div class="wizard-progress" id="wizProgress6"></div>
+      <div class="wizard-step-label">커넥터 이미지</div>
+      <!-- v5.1 proto: 이미지 있음/없음 케이스 전환 토글 -->
+      <div style="margin:0 16px 8px;display:flex;gap:6px;align-items:center;">
+        <span style="font-size:10px;color:var(--text-muted);font-weight:500;">케이스 미리보기:</span>
+        <button onclick="toggleImgCase('connector','img')" style="flex:1;padding:5px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #6ee7b7;background:#d1fae5;color:#065f46;cursor:pointer;">이미지 있음</button>
+        <button onclick="toggleImgCase('connector','none')" style="flex:1;padding:5px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #fbbf24;background:#fef3c7;color:#92400e;cursor:pointer;">이미지 없음</button>
+      </div>
+      <!-- 이미지 있는 경우 -->
+      <div id="connectorImgArea" class="placeholder-img">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+        <div class="ph-title">커넥터 이미지</div>
+        <div class="ph-sub">어드민 설치 매뉴얼 관리 메뉴 연동 이미지</div>
+      </div>
+      <!-- v5.1: 이미지 미연동 시 공통 fallback UI -->
+      <div id="connectorFallback" style="display:none;margin:0 16px;">
+        <div style="padding:24px 20px;background:#fff8e1;border:1px solid #fbbf24;border-radius:12px;text-align:center;">
+          <div style="font-size:36px;margin-bottom:12px;">&#9888;</div>
+          <div style="font-size:14px;font-weight:600;color:#92400e;margin-bottom:8px;">연동 이미지 없음</div>
+          <div style="font-size:13px;color:#b45309;line-height:1.6;">
+            해당 차량의 시동잠금 관련<br>설치 안내 이미지가 등록되지 않았습니다.<br><strong>운영팀에 문의</strong>해 주세요.
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-half" style="background:#e5e7eb;color:var(--text-secondary);" onclick="installStep(5)">이전</button>
+        <button class="btn-half" style="background:var(--primary);color:white;" onclick="installStep(7)">다음</button>
+      </div>
+    </div>
+
+    <!-- Step 7: 증빙사진 첨부 (v4.2: 항목 재정의 — 필수 6 / 선택 2 + Non-OBD 시 상시전원 필수) -->
+    <div class="screen" id="screenPhotos">
+      <div class="wizard-progress" id="wizProgress7"></div>
+      <div class="wizard-step-label">증빙사진 첨부</div>
+
+      <!-- v4.2: 모드 안내 배너 (시스템 자동 판단) -->
+      <div class="photo-mode-banner first" id="photoModeBanner">
+        📷 <strong>최초 촬영 모드</strong> — 각 항목을 <strong>촬영하기</strong> 버튼으로 촬영해 주세요. 촬영 후 재촬영을 원할 경우 <strong>재촬영</strong> 버튼을 누르세요.
+      </div>
+
+      <div id="photoGrid"></div>
+
+      <button class="btn-full btn-disabled" id="btnPhotoComplete" onclick="completeInstallTask()">작업 완료</button>
+    </div>
+
+    <!-- ─── AS FLOW: 작업 목록 ─── -->
+    <div class="screen" id="screenAsFlow">
+      <div class="wizard-step-label" style="padding-top:12px;">AS 작업 목록</div>
+      <div class="detail-section" style="padding:12px 16px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;">각 항목을 눌러 개별 완료 처리하세요. 모든 작업 완료 후 검증을 진행합니다.</div>
+      </div>
+      <div id="asFlowItems"></div>
+      <button class="btn-full btn-disabled" id="btnAsVerify" onclick="startVerification()">검증하기</button>
+    </div>
+
+    <!-- AS 개별 항목 작업 -->
+    <div class="screen" id="screenAsItem">
+      <div class="detail-section">
+        <div class="detail-section-title">AS 작업 항목</div>
+        <div id="asItemTitle" style="font-size:16px;font-weight:700;"></div>
+      </div>
+      <div class="photo-upload" id="asPhoto">
+        <div class="photo-preview">📷</div>
+        <svg class="photo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <div class="photo-label">작업 완료 사진</div>
+        <div class="photo-sub">해당 AS 항목 완료 증빙 촬영</div>
+        <div class="photo-btn-row">
+          <button type="button" class="photo-upload-btn" onclick="captureAsPhoto()">촬영하기</button>
+        </div>
+      </div>
+      <button class="btn-full btn-primary" id="btnAsItemDone" onclick="completeAsItem()" style="opacity:0.4;pointer-events:none;">항목 완료</button>
+    </div>
+
+    <!-- ─── VALIDATION ANIMATION ─── -->
+    <div class="screen" id="screenValidation">
+      <div class="wizard-step-label" style="padding-top:12px;">검증 진행 중</div>
+      <div class="detail-section" style="padding:10px 16px;">
+        <div style="font-size:12px;color:var(--text-muted);">단계별 안내 팝업을 확인하며 검증을 진행합니다.</div>
+      </div>
+      <!-- v5.3: 케이스 시뮬레이션 (OBD 모드) -->
+      <div id="obdScenarioBar" class="scenario-bar">
+        <div class="scenario-bar-title">&#127489; 케이스 시뮬레이션 (OBD 모드)</div>
+        <div class="scenario-btns">
+          <button class="scenario-btn active" onclick="setDemoScenario(this,'normal')">정상 진행</button>
+          <button class="scenario-btn" onclick="setDemoScenario(this,'ex02')">EX-02: OBD 초기화 실패</button>
+          <button class="scenario-btn" onclick="setDemoScenario(this,'ex14')">EX-14: CarDB 설치 실패</button>
+          <button class="scenario-btn" onclick="setDemoScenario(this,'ex15')">EX-15: CarDB 검증 실패</button>
+          <button class="scenario-btn" onclick="setDemoScenario(this,'ex03')">EX-03: 시동 감지 실패</button>
+          <button class="scenario-btn" onclick="setDemoScenario(this,'ex05')">EX-05: 잠금 테스트 실패</button>
+        </div>
+      </div>
+      <!-- v5.3: 케이스 시뮬레이션 (Non-OBD 모드) -->
+      <div id="nonObdScenarioBar" class="scenario-bar" style="display:none;">
+        <div class="scenario-bar-title">&#127489; 케이스 시뮬레이션 (Non-OBD 모드)</div>
+        <div class="scenario-btns">
+          <button class="scenario-btn active" onclick="setDemoScenario(this,'normal')">정상 진행</button>
+          <button class="scenario-btn" onclick="setDemoScenario(this,'ex12')">EX-12: 시동 ON 타임아웃</button>
+          <button class="scenario-btn" onclick="setDemoScenario(this,'ex13')">EX-13: 시동 OFF 타임아웃</button>
+          <button class="scenario-btn" onclick="setDemoScenario(this,'ex05')">EX-05: 잠금 테스트 실패</button>
+        </div>
+      </div>
+      <!-- 검증 시작 버튼 — 시나리오 선택 후 직접 누름 -->
+      <div id="verifyStartBtnWrap" style="padding:4px 16px 14px;">
+        <div style="padding:12px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;margin-bottom:10px;font-size:12px;color:#0369a1;line-height:1.6;">
+          <strong>💡 시나리오 선택 후 검증을 시작하세요.</strong><br>
+          위의 케이스 시뮬레이션에서 테스트할 케이스를 먼저 선택한 뒤,<br>아래 버튼을 눌러 검증을 진행합니다.
+        </div>
+        <button onclick="beginValidation()"
+          style="width:100%;padding:14px;background:var(--primary);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:-0.02em;">
+          검증 시작
+        </button>
+      </div>
+      <div class="validation-list" id="validationList"></div>
+      <!-- Non-OBD 시동 ON/OFF 테스트 -->
+      <div id="nonObdEngineTestSection" style="display:none;padding:16px 16px 8px;">
+        <div style="padding:12px 16px;background:#faf5ff;border:1px solid #d8b4fe;border-radius:8px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:700;color:#7c3aed;margin-bottom:6px;">Non-OBD 시동 ON/OFF 테스트</div>
+          <div style="font-size:12px;color:#666;line-height:1.5;">Non-OBD 모드 검증입니다. 운행 패킷 유효성 검사 8단계는 패스되며, 대신 시동 ON/OFF 테스트만 진행합니다.</div>
+        </div>
+        <div id="nonObdTestStep1" style="margin-bottom:8px;padding:10px 14px;background:white;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:13px;font-weight:600;">1. 시동 ON 테스트</div>
+            <div style="font-size:11px;color:#666;">차량 시동 후 activation 패킷 수신 시 패스</div>
+          </div>
+          <button type="button" id="btnNonObdOn" onclick="runNonObdOn()" style="padding:8px 14px;background:#7c3aed;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">시작</button>
+        </div>
+        <div id="nonObdTestStep2" style="margin-bottom:8px;padding:10px 14px;background:white;border:1px solid #e5e7eb;border-radius:8px;display:flex;align-items:center;justify-content:space-between;opacity:0.5;">
+          <div>
+            <div style="font-size:13px;font-weight:600;">2. 시동 OFF 테스트</div>
+            <div style="font-size:11px;color:#666;">차량 시동 종료 후 trip 패킷 수신 시 패스</div>
+          </div>
+          <button type="button" id="btnNonObdOff" onclick="runNonObdOff()" disabled style="padding:8px 14px;background:#e5e7eb;color:#9ca3af;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:not-allowed;">대기</button>
+        </div>
+        <div id="nonObdTestResult" style="display:none;margin-top:8px;padding:10px 14px;border-radius:8px;font-size:13px;"></div>
+      </div>
+      <!-- 시동잠금 제어 검증 (시동 ON/OFF 테스트 아래에 위치) -->
+      <div id="engineLockTestSection" style="display:none;padding:8px 16px 16px;">
+        <div style="padding:12px 16px;background:#f0f7ff;border:1px solid #bdd7ee;border-radius:8px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:600;color:#1e6fbe;margin-bottom:4px;">3. 시동잠금 제어 검증</div>
+          <div style="font-size:12px;color:#666;line-height:1.5;">시동잠금 설치 건의 경우 아래 버튼을 눌러 시동잠금 테스트를 진행해 주세요.</div>
+        </div>
+        <button class="btn-full btn-primary" onclick="runEngineLockTest()" id="btnEngineLockTest">시동잠금 테스트</button>
+        <div id="engineLockTestResult" style="display:none;margin-top:8px;padding:10px 14px;border-radius:8px;font-size:13px;"></div>
+      </div>
+    </div>
+
+    <!-- ─── 검증 결과 화면 (NEW — shared by 설치/AS) ─── -->
+    <div class="screen" id="screenVerifyResult">
+      <div class="wizard-step-label" style="padding-top:12px;">검증 결과</div>
+      <!-- v5.1 proto: 케이스 전환 토글 (재검증 버튼 확인용) -->
+      <div style="margin:0 16px 8px;display:flex;gap:6px;align-items:center;">
+        <span style="font-size:10px;color:var(--text-muted);font-weight:500;">케이스 미리보기:</span>
+        <button onclick="previewVerifyCase('pass')" id="btnCasePass"
+          style="flex:1;padding:5px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #6ee7b7;background:#d1fae5;color:#065f46;cursor:pointer;">✓ 정상</button>
+        <button onclick="previewVerifyCase('fail')" id="btnCaseFail"
+          style="flex:1;padding:5px 8px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid #fca5a5;background:#fee2e2;color:#991b1b;cursor:pointer;">✗ 비정상 (재검증 버튼)</button>
+      </div>
+      <!-- v5.0: 차량번호 + 차종 헤더 -->
+      <div style="margin:0 16px 12px;padding:12px 14px;background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);border-radius:10px;border-left:4px solid var(--primary);">
+        <div style="font-size:11px;color:var(--primary-dark);font-weight:500;margin-bottom:2px;">검증 대상 차량</div>
+        <div style="font-size:18px;font-weight:700;color:var(--text-primary);line-height:1.2;">
+          <span id="verifyResultVehicle">-</span>
+          <span style="font-size:13px;color:var(--primary);font-weight:600;margin-left:6px;" id="verifyResultCarModel">-</span>
+        </div>
+      </div>
+      <div class="verify-grid" id="verifyResultGrid"></div>
+      <div id="verifyWarning" class="verify-warning" style="display:none;">
+        검증 결과가 비정상입니다. 재검증 또는 재작업이 필요합니다.
+      </div>
+      <!-- v5.0: [재검증] / [재작업] / [작업 완료] 3버튼 -->
+      <div class="btn-row" style="gap:6px;">
+        <button class="btn-half" style="flex:1;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;font-weight:600;display:none;" id="btnReverify" onclick="handleReverify()">재검증</button>
+        <button class="btn-half" style="flex:1;background:#e5e7eb;color:var(--text-secondary);" id="btnRework" onclick="handleRework()">재작업</button>
+        <button class="btn-half" style="flex:1;background:var(--primary);color:white;" id="btnVerifyComplete" onclick="completeWork()">작업 완료</button>
+      </div>
+      <div style="padding:0 16px 8px;font-size:11px;color:var(--text-muted);line-height:1.5;">
+        <strong>[재검증]</strong> 설치를 건드리지 않고 검증만 재실행 (통신 지연 등 일시 장애 시)<br>
+        <strong>[재작업]</strong> 설치 프로세스를 처음부터 재진행 (실제 재시공 필요 시)
+      </div>
+    </div>
+
+    <!-- ─── REMOVAL FLOW ─── -->
+    <div class="screen" id="screenRemoval">
+      <div class="wizard-step-label" style="padding-top:12px;">탈거 작업</div>
+      <div class="placeholder-img" style="height:200px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <div class="ph-title">단말기 탈거 진행</div>
+        <div class="ph-sub">단말기를 차량에서 분리하세요</div>
+      </div>
+      <div class="photo-upload" id="removalPhoto">
+        <div class="photo-preview">📷</div>
+        <svg class="photo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <div class="photo-label">탈거 사진 <span class="photo-req-badge req">필수</span></div>
+        <div class="photo-sub">탈거된 단말기 상태 촬영</div>
+        <div class="photo-btn-row">
+          <button type="button" class="photo-upload-btn" onclick="captureRemovalPhoto(0)">촬영하기</button>
+        </div>
+      </div>
+      <div id="removalDkeySection" style="display:none;">
+        <div class="photo-upload" id="removalDkeyPhoto">
+          <div class="photo-preview">📷</div>
+          <svg class="photo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <div class="photo-label">작업 완료 이미지 (디지털차키) <span class="photo-req-badge req">필수</span></div>
+          <div class="photo-sub">디지털차키 설치 차량 — 추가 증빙</div>
+          <div class="photo-btn-row">
+            <button type="button" class="photo-upload-btn" onclick="captureRemovalPhoto(1)">촬영하기</button>
+          </div>
+        </div>
+        <div class="photo-upload" id="removalDkeyVideo">
+          <div class="photo-preview">🎥</div>
+          <svg class="photo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m15 12-5-3v6l5-3z"/></svg>
+          <div class="photo-label">디지털차키 원복 동영상 <span class="photo-req-badge req">필수</span></div>
+          <div class="photo-sub">원복 작업 완료 동영상 촬영</div>
+          <div class="photo-btn-row">
+            <button type="button" class="photo-upload-btn" onclick="captureRemovalPhoto(2)">촬영하기</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn-full btn-disabled" id="btnRemovalComplete" onclick="completeWork()">작업 완료</button>
+    </div>
+
+    <!-- ─── TAB 2: 이력 ─── -->
+    <div class="screen" id="screenHistory">
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="searchHistory" placeholder="차량번호, 업체명, 지점명 검색" oninput="filterHistory()">
+        </div>
+      </div>
+      <div class="filter-row">
+        <select class="filter-select" id="filterYear" onchange="filterHistory()">
+          <option value="">전체 연도</option>
+          <option value="2026">2026년</option>
+          <option value="2025">2025년</option>
+        </select>
+        <select class="filter-select" id="filterMonth" onchange="filterHistory()">
+          <option value="">전체 월</option>
+          <option value="01">1월</option><option value="02">2월</option>
+          <option value="03">3월</option><option value="04">4월</option>
+          <option value="05">5월</option><option value="06">6월</option>
+          <option value="07">7월</option><option value="08">8월</option>
+          <option value="09">9월</option><option value="10">10월</option>
+          <option value="11">11월</option><option value="12">12월</option>
+        </select>
+      </div>
+      <div class="list-section" id="historyList" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- ─── HISTORY DETAIL ─── -->
+    <div class="screen" id="screenHistoryDetail">
+      <div class="detail-section">
+        <div class="detail-section-title">작업 정보</div>
+        <div class="detail-row"><span class="detail-label">차량번호</span><span class="detail-value" id="hdVehicle"></span></div>
+        <div class="detail-row"><span class="detail-label">업체명</span><span class="detail-value" id="hdCompany"></span></div>
+        <div class="detail-row"><span class="detail-label">지점명</span><span class="detail-value" id="hdBranch"></span></div>
+        <div class="detail-row"><span class="detail-label">서비스 유형</span><span class="detail-value" id="hdType"></span></div>
+        <div class="detail-row"><span class="detail-label">작업 완료일시</span><span class="detail-value" id="hdDate"></span></div>
+        <div class="detail-row"><span class="detail-label">작업 결과</span><span class="detail-value" id="hdResult"></span></div>
+      </div>
+      <div class="detail-section" id="hdPhotoSection">
+        <div class="detail-section-title">증빙사진 <span style="font-size:11px;color:var(--primary);font-weight:400;">(수정 가능)</span></div>
+        <div class="history-photos" style="padding:0;" id="hdPhotos"></div>
+      </div>
+      <!-- v3.3: 검증 결과 전체 12개 항목 표시 -->
+      <div class="detail-section" id="hdDeviceSection" style="display:none;">
+        <div class="detail-section-title">검증 결과</div>
+        <div class="detail-row"><span class="detail-label">단말기 기종</span><span class="detail-value" id="hdDeviceModel">CAMD3000BK</span></div>
+        <div class="detail-row"><span class="detail-label">단말기 SN</span><span class="detail-value" id="hdDeviceSN">BL_2501_1399</span></div>
+        <div class="detail-row"><span class="detail-label">디지털차키</span><span class="detail-value" id="hdDkey">미설치</span></div>
+        <div class="detail-row"><span class="detail-label">시동잠금</span><span class="detail-value" id="hdSlock">설치</span></div>
+        <div class="detail-row"><span class="detail-label">GPS 좌표</span><span class="detail-value" style="font-size:12px;" id="hdGpsCoord">37.4979, 127.0276</span></div>
+        <div class="detail-row"><span class="detail-label">총 주행거리</span><span class="detail-value" id="hdMileage">32,450 km</span></div>
+        <div class="detail-row"><span class="detail-label">연료잔량</span><span class="detail-value" id="hdFuel">65%</span></div>
+        <!-- v3.5: 시동제어 테스트 삭제 (시동감지와 중복). 12→11항목 -->
+        <div class="detail-row"><span class="detail-label">단말기 전원연결</span><span class="detail-value" style="color:var(--st-completed);" id="hdPower">정상</span></div>
+        <div class="detail-row"><span class="detail-label">시동감지</span><span class="detail-value" style="color:var(--st-completed);" id="hdIgnition">정상</span></div>
+        <div class="detail-row"><span class="detail-label">시동잠금 제어 검증</span><span class="detail-value" style="color:var(--st-completed);" id="hdEngineLock">정상</span></div>
+        <div class="detail-row"><span class="detail-label">GPS 감도</span><span class="detail-value" style="color:var(--st-completed);" id="hdGpsSensitivity">정상</span></div>
+      </div>
+    </div>
+
+  </div><!-- /app-content -->
+
+  <!-- ═══════ BOTTOM TAB BAR ═══════ -->
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-bar-item active" onclick="switchTab('list')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+      <span>배정 작업 목록</span>
+    </button>
+    <button class="tab-bar-item" onclick="switchTab('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>이력</span>
+    </button>
+  </div>
+</div><!-- /app-frame -->
+
+<!-- ═══════ MODAL: 작업 불가 (v5.0: 사유 선택 + 증빙 사진 필수 첨부) ═══════ -->
+<div class="modal-overlay" id="modalUnable">
+  <div class="modal" style="max-width:92%;">
+    <div class="modal-title">작업 불가 처리</div>
+    <div class="modal-msg" style="font-size:12.5px;">사유 선택 + 증빙 사진 1장 이상(카메라 촬영) 필수.<br>처리 완료 후 종결되며 재활성화 불가.</div>
+    <div style="margin-bottom:12px;text-align:left;">
+      <div style="font-size:12.5px;font-weight:600;margin-bottom:4px;">사유 선택 <span style="color:var(--error);">*</span></div>
+      <select class="filter-select" id="unableReasonSelect" onchange="onUnableReasonChange()" style="width:100%;height:44px;font-size:14px;border-radius:10px;margin-bottom:8px;">
+        <option value="" disabled selected>사유를 선택하세요</option>
+        <option value="차량 부재 (노쇼)">차량 부재 (노쇼)</option>
+        <option value="차량 키 부재">차량 키 부재</option>
+        <option value="통신 불가 지역">통신 불가 지역</option>
+        <option value="기타 현장 사유">기타 현장 사유</option>
+      </select>
+      <div id="unableReasonEtcWrap" style="display:none;">
+        <input class="form-input" id="unableReasonEtc" placeholder="기타 사유를 입력해주세요" style="width:100%;font-size:14px;">
+      </div>
+    </div>
+    <!-- v5.0 신규: 증빙 사진 첨부 -->
+    <div style="margin-bottom:12px;text-align:left;">
+      <div style="font-size:12.5px;font-weight:600;margin-bottom:4px;">증빙 사진 <span style="color:var(--error);">*</span> <span style="font-size:11px;color:var(--text-muted);font-weight:400;">(카메라만, 1~5장)</span></div>
+      <div style="border:1.5px dashed #cbd5e1;border-radius:8px;padding:14px;text-align:center;background:#f8fafc;cursor:pointer;" onclick="document.getElementById('unablePhotoInput').click()">
+        <input type="file" accept="image/*" capture="environment" multiple id="unablePhotoInput" style="display:none;" onchange="onUnablePhotoChange(this)">
+        <div style="font-size:24px;margin-bottom:4px;">📷</div>
+        <div style="font-size:12px;color:var(--text-secondary);">클릭하여 사진 촬영</div>
+        <div id="unablePhotoPreview" style="margin-top:8px;font-size:11px;color:var(--text-primary);"></div>
+      </div>
+      <div style="font-size:10.5px;color:var(--text-muted);margin-top:4px;">※ 운영팀이 방문비 정산 시 근거 자료로 활용</div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeModal('modalUnable')">취소</button>
+      <button class="modal-btn danger" id="btnUnableSubmit" onclick="submitUnable()" style="opacity:0.4;pointer-events:none;">작업 불가 처리</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: 탈거 확인 ═══════ -->
+<div class="modal-overlay" id="modalRemovalConfirm">
+  <div class="modal">
+    <div class="modal-title">탈거 확인</div>
+    <div class="modal-msg">단말기 탈거를 진행하시겠습니까?<br>탈거 후 증빙 사진을 촬영해야 합니다.</div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeModal('modalRemovalConfirm')">취소</button>
+      <button class="modal-btn confirm" onclick="confirmRemoval()">탈거 진행</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: 작업 완료 ═══════ -->
+<div class="modal-overlay" id="modalComplete">
+  <div class="modal">
+    <div class="modal-title">작업 완료</div>
+    <div class="modal-msg">작업을 완료 처리하시겠습니까?<br>완료 후 이력에 기록됩니다.</div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeModal('modalComplete')">취소</button>
+      <button class="modal-btn confirm" onclick="finalComplete()">완료 처리</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: 취소 알림 (v3.3) ═══════ -->
+<!-- 취소 알림 수신 시 목록 자동 제거, 작업 중이면 취소 안내 팝업 -->
+<div class="modal-overlay" id="modalCancelNotify">
+  <div class="modal">
+    <div style="font-size:48px;margin-bottom:12px;">&#9888;</div>
+    <div class="modal-title">작업 취소 알림</div>
+    <div class="modal-msg">해당 작업이 취소되었습니다.<br>현재 진행 중인 작업을 중단하고<br>배정 목록으로 돌아갑니다.</div>
+    <div class="modal-btns">
+      <button class="modal-btn confirm" onclick="handleCancelNotify()" style="flex:1;">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: 설치형태 변경 안내 (H-02) ═══════ -->
+<div class="modal-overlay" id="modalInstallTypeChange">
+  <div class="modal">
+    <div style="font-size:48px;margin-bottom:12px;">&#9888;</div>
+    <div class="modal-title">설치형태 변경 안내</div>
+    <div class="modal-msg">해당 차량의 설치형태가 운영팀에 의해 변경되었습니다.<br>변경된 설치형태 기준으로 작업을 재진행해 주세요.</div>
+    <div class="modal-btns">
+      <button class="modal-btn confirm" onclick="handleInstallTypeChangeConfirm()" style="flex:1;">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL: 완료 성공 ═══════ -->
+<div class="modal-overlay" id="modalDone">
+  <div class="modal">
+    <div style="font-size:48px;margin-bottom:12px;">&#10003;</div>
+    <div class="modal-title">작업이 완료되었습니다</div>
+    <div class="modal-msg">작업 이력에서 확인할 수 있습니다.</div>
+    <div class="modal-btns">
+      <button class="modal-btn confirm" onclick="backToList()" style="flex:1;">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ v5.3: 검증 팝업 — 차량 시동을 켜주세요 (OBD 1/8 직전) ═══════ -->
+<div class="verify-popup-overlay" id="modalIgnitionOn">
+  <div class="verify-popup">
+    <span class="verify-popup-icon">🔑</span>
+    <div class="verify-popup-title">차량 시동을 켜주세요</div>
+    <div class="verify-popup-body">
+      단말기 검증을 위해 차량 시동을 켜주세요.
+      <ul>
+        <li>시동 후 단말기 LED 점등을 확인해 주세요.</li>
+        <li>Activation 패킷이 수신되면 자동으로 다음 단계가 진행됩니다.</li>
+      </ul>
+    </div>
+    <div class="verify-popup-btns">
+      <button class="verify-popup-btn primary" onclick="confirmVerifyActionPopup('modalIgnitionOn')">확인 — 시동 켰습니다</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ v5.3: 검증 팝업 — 차량 시동을 꺼주세요 (Activation 수신 후) ═══════ -->
+<div class="verify-popup-overlay" id="modalIgnitionOff">
+  <div class="verify-popup">
+    <span class="verify-popup-icon">🚗</span>
+    <div class="verify-popup-title">차량 시동을 꺼주세요</div>
+    <div class="verify-popup-body">
+      Activation 패킷 수신이 확인되었습니다.<br>
+      Trip 패킷 수신을 위해 차량 시동을 꺼주세요.
+      <ul>
+        <li>시동 OFF 후 단말기에서 Trip 패킷이 수신되면 자동으로 완료됩니다.</li>
+      </ul>
+    </div>
+    <div class="verify-popup-btns">
+      <button class="verify-popup-btn primary" onclick="confirmVerifyActionPopup('modalIgnitionOff')">확인 — 시동 껐습니다</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ v5.3: 운행 패킷 유효성 체크 팝업 (1/8 ~ 8/8) — 동적 콘텐츠 ═══════ -->
+<div class="verify-popup-overlay" id="modalPacketCheck">
+  <div class="verify-popup">
+    <span class="verify-popup-step-badge" id="pcStepBadge">운행 패킷 유효성 체크 1/8</span>
+    <span class="verify-popup-icon" id="pcIcon">🚗</span>
+    <div class="verify-popup-title" id="pcTitle"></div>
+    <div class="verify-popup-img-placeholder" id="pcImgWrap" style="display:none;">📷 개발팀 제공 이미지<br>(단말기 LED 점멸)</div>
+    <div class="verify-popup-body" id="pcBody" style="white-space:pre-line;"></div>
+    <div class="verify-popup-wait-state" id="pcWaitState" style="display:none;">단말기 확인중... 잠시 기다려 주세요.</div>
+    <div class="verify-popup-firmware" id="pcFirmware" style="display:none;"></div>
+    <div class="verify-popup-btns" id="pcBtns"></div>
+  </div>
+</div>
+
+<!-- ═══════ v5.3: EX-02 — 단말기 초기화 실패 ═══════ -->
+<div class="verify-popup-overlay" id="modalEx02">
+  <div class="verify-popup">
+    <span class="verify-popup-icon">⚠️</span>
+    <div class="verify-popup-title">단말기 초기화 실패</div>
+    <div class="verify-popup-body">
+      OBD 설정 초기화에 실패했습니다. 아래 사항을 확인 후 재시도해 주세요.
+      <ul>
+        <li>OBD 포트에 단말기가 정확히 결합되어 있는지 확인하세요.</li>
+        <li>단말기 LED가 점등 상태인지 확인하세요.</li>
+        <li>통신 상태(LTE/GPS 신호)가 양호한 지역인지 확인하세요.</li>
+      </ul>
+    </div>
+    <div class="verify-popup-btns">
+      <button class="verify-popup-btn gray" onclick="showUnableFromVerify('modalEx02')">작업 불가</button>
+      <button class="verify-popup-btn retry" onclick="retryFromEx02()">재시도</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ v5.3: EX-03 — 시동이 감지되지 않습니다 (OBD 1/8 타임아웃) ═══════ -->
+<div class="verify-popup-overlay" id="modalEx03">
+  <div class="verify-popup">
+    <span class="verify-popup-icon">⚠️</span>
+    <div class="verify-popup-title">시동이 감지되지 않습니다</div>
+    <div class="verify-popup-body">
+      Activation 패킷이 수신되지 않았습니다. 아래 사항을 확인 후 재시도해 주세요.
+      <ul>
+        <li>단말기 LED 점등 여부를 확인하세요.</li>
+        <li>OBD 포트 결합 상태를 다시 확인하세요.</li>
+        <li>차량 시동이 완전히 켜진 상태인지 확인하세요.</li>
+      </ul>
+    </div>
+    <div class="verify-popup-btns">
+      <button class="verify-popup-btn gray" onclick="showUnableFromVerify('modalEx03')">작업 불가</button>
+      <button class="verify-popup-btn retry" onclick="retryFromEx03()">재시도</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ v5.3: EX-05 — 시동잠금 테스트 실패 ═══════ -->
+<div class="verify-popup-overlay" id="modalEx05">
+  <div class="verify-popup">
+    <span class="verify-popup-icon">🔒</span>
+    <div class="verify-popup-title">시동잠금 테스트 실패</div>
+    <div class="verify-popup-body">
+      시동잠금 명령 응답에 실패했습니다. 아래 사항을 확인 후 재시도해 주세요.
+      <ul>
+        <li>차량 시동이 완전히 꺼진 상태인지 확인하세요.</li>
+        <li>ACC(액세서리) 전원이 제거된 상태인지 확인하세요.</li>
+        <li>5초 이상 대기 후 재시도해 주세요.</li>
+      </ul>
+    </div>
+    <div class="verify-popup-btns">
+      <button class="verify-popup-btn retry" onclick="retryFromEx05()" style="flex:1;">재시도</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ v5.5: EX-14 — 차량 DB 설치 실패 ═══════ -->
+<div class="verify-popup-overlay" id="modalEx14">
+  <div class="verify-popup">
+    <span class="verify-popup-icon">⚠️</span>
+    <div class="verify-popup-title">차량 DB 설치 실패</div>
+    <div class="verify-popup-body">
+      차량 DB(CarDB) 설치에 실패했습니다. 아래 사항을 확인 후 재시도해 주세요.
+      <ul>
+        <li>OBD 포트에 단말기가 정확히 결합되어 있는지 확인하세요.</li>
+        <li>단말기 LED 점등 여부를 확인하세요.</li>
+        <li>차량 시동이 켜진 상태인지 확인하세요.</li>
+      </ul>
+      <div style="margin-top:10px;padding:8px 10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;font-size:11.5px;color:#92400e;">
+        ✔ 단말기 연결을 재확인한 뒤 <strong>[재시도]</strong>하거나,<br>현장 사유로 작업이 불가한 경우 <strong>[작업 불가]</strong>를 선택하세요.
+      </div>
+    </div>
+    <div class="verify-popup-btns">
+      <button class="verify-popup-btn gray" onclick="showUnableFromVerify('modalEx14')">작업 불가</button>
+      <button class="verify-popup-btn retry" onclick="retryFromEx14()">재시도</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ v5.5: EX-15 — 차량 DB 검증 실패 ═══════ -->
+<div class="verify-popup-overlay" id="modalEx15">
+  <div class="verify-popup">
+    <span class="verify-popup-icon">⚠️</span>
+    <div class="verify-popup-title">차량 DB 검증 실패</div>
+    <div class="verify-popup-body">
+      차량 DB 설치 결과 체크에 실패했습니다. 아래 사항을 확인 후 재시도해 주세요.
+      <ul>
+        <li>OBD 포트 연결 상태를 다시 확인하세요.</li>
+        <li>단말기 LED가 정상 점등 중인지 확인하세요.</li>
+        <li>서버 통신 상태(LTE/GPS 신호)가 양호한지 확인하세요.</li>
+      </ul>
+      <div style="margin-top:10px;padding:8px 10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;font-size:11.5px;color:#92400e;">
+        ✔ 연결 상태 확인 후 <strong>[재시도]</strong>를 누르면 DB 결과 체크 단계부터 재진행됩니다.
+      </div>
+    </div>
+    <div class="verify-popup-btns">
+      <button class="verify-popup-btn gray" onclick="showUnableFromVerify('modalEx15')">작업 불가</button>
+      <button class="verify-popup-btn retry" onclick="retryFromEx15()">재시도</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ v5.3: EX-12 — Non-OBD 시동 ON 타임아웃 ═══════ -->
+<div class="verify-popup-overlay" id="modalEx12">
+  <div class="verify-popup">
+    <span class="verify-popup-icon">⚠️</span>
+    <div class="verify-popup-title">시동이 감지되지 않습니다</div>
+    <div class="verify-popup-body">
+      시동 ON 신호(Activation 패킷)가 수신되지 않았습니다.
+      <ul>
+        <li>차량 시동이 완전히 켜진 상태인지 확인하세요.</li>
+        <li>단말기 LED 점등 여부를 확인하세요.</li>
+        <li>재시도 후에도 감지되지 않으면 작업 불가 처리하세요.</li>
+      </ul>
+    </div>
+    <div class="verify-popup-btns">
+      <button class="verify-popup-btn gray" onclick="showUnableFromVerify('modalEx12')">작업 불가</button>
+      <button class="verify-popup-btn retry" onclick="retryNonObdOn()">재시도</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ v5.3: EX-13 — Non-OBD 시동 OFF 타임아웃 ═══════ -->
+<div class="verify-popup-overlay" id="modalEx13">
+  <div class="verify-popup">
+    <span class="verify-popup-icon">⚠️</span>
+    <div class="verify-popup-title">시동 OFF가 감지되지 않습니다</div>
+    <div class="verify-popup-body">
+      시동 OFF 신호(Trip 패킷)가 수신되지 않았습니다.
+      <ul>
+        <li>차량 시동이 완전히 꺼진 상태인지 확인하세요.</li>
+        <li>단말기 LED 소등 여부를 확인하세요.</li>
+        <li>재시도 후에도 감지되지 않으면 작업 불가 처리하세요.</li>
+      </ul>
+    </div>
+    <div class="verify-popup-btns">
+      <button class="verify-popup-btn gray" onclick="showUnableFromVerify('modalEx13')">작업 불가</button>
+      <button class="verify-popup-btn retry" onclick="retryNonObdOff()">재시도</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const assignedData = [
+  // v3.2: installType(차량 데이터), hasConstPowerImg/hasConnectorImg(CarDB 연동 이미지 유무) 추가
+  // v4.0: address, contact, isTemp 신규
+  // v5.0: carModel (차종) 신규
+  { id:1, vehicle:'004499', carModel:'현대 셀토스', company:'주식회사이카', branch:'강남지점', type:'설치', date:'2026-03-24', dkey:false, slock:true, installType:'OBD', hasConstPowerImg:false, hasConnectorImg:true, asItems:[], adminMemo:'강남 지역 주차 주의. 지하 2층 주차장 진입 필요.', address:'서울 강남구 논현동 123', contact:'010-1234-5678', isTemp:false },
+  { id:2, vehicle:'149조6163', carModel:'벤츠 E-Class', company:'스위치플랜', branch:'본사', type:'AS', date:'2026-03-24', dkey:false, slock:false, installType:'OBD', hasConstPowerImg:false, hasConnectorImg:true, asItems:['단말기 단순 교체','안테나 교체 및 조정'], adminMemo:'건물 정문 주차장에 주차 후 관리실 문의.', address:'서울 마포구 양화로 100', contact:'010-2345-6789', isTemp:false },
+  { id:3, vehicle:'003289', carModel:'기아 레이', company:'지에스렌트카', branch:'신안성지점', type:'설치', date:'2026-03-25', dkey:true, slock:true, installType:'Non-OBD', hasConstPowerImg:true, hasConnectorImg:false, asItems:[], adminMemo:'', address:'경기 안성시 공도읍 152', contact:'010-3456-7890', isTemp:false },
+  { id:4, vehicle:'161호5335', carModel:'현대 포터2', company:'KFR 제일렌트카', branch:'수원지점', type:'탈거', date:'2026-03-25', dkey:true, slock:false, installType:'OBD', hasConstPowerImg:false, hasConnectorImg:true, asItems:[], adminMemo:'디지털차키 원복 반드시 확인할 것.', address:'경기 수원시 영통구 38', contact:'010-4567-8901', isTemp:false },
+  { id:5, vehicle:'280419', carModel:'기아 K5', company:'주식회사 재주앤렌트카', branch:'제주지점', type:'AS', date:'2026-03-26', dkey:false, slock:false, installType:'OBD', hasConstPowerImg:true, hasConnectorImg:true, asItems:['메인 케이블 교체','배선 재연결','디지털 차키 탈거'], adminMemo:'', address:'제주 제주시 연동 285', contact:'010-5678-9012', isTemp:false },
+  // v4.0 신규: 임시 등록 데모 행
+  { id:6, vehicle:'00000000', carModel:'현대 아반떼', company:'오토엔즈 (주)', branch:'광명지점', type:'설치', date:'2026-04-12', dkey:false, slock:true, installType:'OBD', hasConstPowerImg:false, hasConnectorImg:true, asItems:[], adminMemo:'※ 임시 등록 차량 — 차대번호 미확정. 현장 도착 후 차대번호 라벨 촬영하여 운영팀에 전달 부탁드립니다.', address:'경기 광명시 일직로 13', contact:'010-9999-0000', isTemp:true },
+];
+
+const historyData = [
+  { id:101, vehicle:'003307', company:'주식회사이카', branch:'강남지점', type:'설치', completedAt:'2026-03-15 12:51', result:'완료' },
+  { id:102, vehicle:'280419', company:'KFR 제일렌트카', branch:'수원지점', type:'탈거', completedAt:'2026-03-15 13:30', result:'완료' },
+  { id:103, vehicle:'19호8834', company:'재주앤렌트카', branch:'제주지점', type:'AS', completedAt:'2026-03-14 10:06', result:'완료' },
+  { id:104, vehicle:'006123', company:'스위치플랜', branch:'본사', type:'설치', completedAt:'2026-03-13 15:20', result:'작업불가' },
+  { id:105, vehicle:'74주1234', company:'지에스렌트카', branch:'강남지점', type:'AS', completedAt:'2026-03-10 09:15', result:'완료' },
+  { id:106, vehicle:'55노9876', company:'주식회사이카', branch:'본사', type:'설치', completedAt:'2026-02-28 14:40', result:'완료' },
+];
+
+const deviceModels = ['CAMD1000','CAMD2000','CAMD2500','CAMD2500K','CAMD2500LD','CAMD2500KD','CAMD3000BK','CAMD3000BL','CAMD3000BKC'];
+
+const validationSteps = [
+  'OBD 설정 초기화',
+  '차량 DB 설치',
+  '차량 DB 설치 결과 체크',
+  '운행 패킷 유효성 체크 (1/8)',
+  '운행 패킷 유효성 체크 (2/8)',
+  '운행 패킷 유효성 체크 (3/8)',
+  '운행 패킷 유효성 체크 (4/8)',
+  '운행 패킷 유효성 체크 (5/8)',
+  '운행 패킷 유효성 체크 (6/8)',
+  '운행 패킷 유효성 체크 (7/8)',
+  '운행 패킷 유효성 체크 (8/8)',
+  '패킷 유효성 체크 완료',
+];
+
+// v5.3: 시동잠금 제어 검증 (EX-05 팝업 포함)
+function runEngineLockTest() {
+  const btn = document.getElementById('btnEngineLockTest');
+  const resultEl = document.getElementById('engineLockTestResult');
+  btn.textContent = '테스트 진행 중...';
+  btn.style.opacity = '0.5';
+  btn.style.pointerEvents = 'none';
+  if (resultEl) resultEl.style.display = 'none';
+
+  // v5.3: EX-05 — 시동잠금 테스트 실패 시뮬레이션
+  if (demoScenario === 'ex05') {
+    setTimeout(() => {
+      resultEl.style.display = 'block';
+      resultEl.style.background = '#fef2f2';
+      resultEl.style.border = '1px solid #fca5a5';
+      resultEl.style.color = '#dc2626';
+      resultEl.innerHTML = '&#10007; 시동잠금 테스트 실패 — 명령 응답 없음';
+      document.getElementById('modalEx05').classList.add('open');
+    }, 2000);
+    return;
+  }
+
+  setTimeout(() => {
+    resultEl.style.display = 'block';
+    resultEl.style.background = '#ecfdf5';
+    resultEl.style.border = '1px solid #86efac';
+    resultEl.style.color = '#166534';
+    resultEl.innerHTML = '&#10003; 시동잠금 테스트 정상 완료';
+    btn.textContent = '테스트 완료';
+    setTimeout(() => showVerifyResult(), 1500);
+  }, 2000);
+}
+
+// v5.3: Non-OBD 시동 ON/OFF 테스트 (EX-12/EX-13 팝업 포함)
+function showNonObdEngineTest() {
+  document.getElementById('nonObdEngineTestSection').style.display = 'block';
+}
+function runNonObdOn() {
+  const btn = document.getElementById('btnNonObdOn');
+  btn.textContent = '대기 중...';
+  btn.disabled = true;
+  btn.style.background = '#e5e7eb';
+  btn.style.color = '#9ca3af';
+  btn.style.cursor = 'not-allowed';
+
+  // v5.3: EX-12 — Non-OBD 시동 ON 타임아웃 시뮬레이션
+  if (demoScenario === 'ex12') {
+    setTimeout(() => {
+      btn.textContent = '타임아웃 (30s)';
+      btn.style.background = '#fca5a5';
+      btn.style.color = '#991b1b';
+      document.getElementById('modalEx12').classList.add('open');
+    }, 2000);
+    return;
+  }
+
+  setTimeout(() => {
+    btn.textContent = '✓ Activation 수신';
+    btn.style.background = '#15ab39';
+    btn.style.color = 'white';
+    document.getElementById('nonObdTestStep1').style.borderColor = '#15ab39';
+    const btn2 = document.getElementById('btnNonObdOff');
+    document.getElementById('nonObdTestStep2').style.opacity = '1';
+    btn2.disabled = false;
+    btn2.textContent = '시작';
+    btn2.style.background = '#7c3aed';
+    btn2.style.color = 'white';
+    btn2.style.cursor = 'pointer';
+  }, 1500);
+}
+function runNonObdOff() {
+  const btn = document.getElementById('btnNonObdOff');
+  btn.textContent = '대기 중...';
+  btn.disabled = true;
+  btn.style.background = '#e5e7eb';
+  btn.style.color = '#9ca3af';
+  btn.style.cursor = 'not-allowed';
+
+  // v5.3: EX-13 — Non-OBD 시동 OFF 타임아웃 시뮬레이션
+  if (demoScenario === 'ex13') {
+    setTimeout(() => {
+      btn.textContent = '타임아웃 (30s)';
+      btn.style.background = '#fca5a5';
+      btn.style.color = '#991b1b';
+      document.getElementById('modalEx13').classList.add('open');
+    }, 2000);
+    return;
+  }
+
+  setTimeout(() => {
+    btn.textContent = '✓ Trip 수신';
+    btn.style.background = '#15ab39';
+    btn.style.color = 'white';
+    document.getElementById('nonObdTestStep2').style.borderColor = '#15ab39';
+    const r = document.getElementById('nonObdTestResult');
+    r.style.display = 'block';
+    r.style.background = '#ecfdf5';
+    r.style.border = '1px solid #86efac';
+    r.style.color = '#166534';
+    if (toggleState.slock || demoScenario === 'ex05') {
+      r.innerHTML = '&#10003; Non-OBD 시동 ON/OFF 테스트 정상 완료. 이어서 시동잠금 테스트를 진행해 주세요.';
+    } else {
+      r.innerHTML = '&#10003; Non-OBD 시동 ON/OFF 테스트 정상 완료. 검증 결과로 이동합니다.';
+    }
+    setTimeout(() => {
+      if (toggleState.slock || demoScenario === 'ex05') {
+        document.getElementById('engineLockTestSection').style.display = 'block';
+      } else {
+        showVerifyResult();
+      }
+    }, 1500);
+  }, 1500);
+}
+
+// v3.5: 검증 결과 11개 항목 데이터 (시동제어 테스트 삭제 — 시동감지와 중복)
+const verifyResultItems = [
+  { label:'단말기 기종', value:'CAMD3000BK', type:'info' },
+  { label:'단말기 SN', value:'BL_2501_1399', type:'info' },
+  { label:'디지털차키', value:'미설치', type:'info' },
+  { label:'시동잠금', value:'설치', type:'info' },
+  { label:'GPS 좌표', value:'37.4979, 127.0276', type:'info' },
+  { label:'총 주행거리', value:'15,230 km', type:'info' },
+  { label:'연료잔량', value:'45%', type:'info' },
+  { label:'단말기 전원연결', value:'정상', type:'critical', pass:true },
+  { label:'시동감지', value:'정상', type:'critical', pass:true },
+  { label:'시동잠금 제어 검증', value:'정상', type:'critical', pass:true },
+  { label:'GPS 감도', value:'정상', type:'gps', pass:true },
+];
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let currentTab = 'list';
+let currentScreen = 'screenList';
+let screenStack = [];
+let currentItem = null;
+let selectedDevice = null;
+// v4.2: 증빙사진 8장 — 필수 6 (idx 0~5) / 선택 2 (idx 6~7)
+// 0: 차량 번호판 (필수)
+// 1: 차대번호 (필수)
+// 2: 메인배선 연결 (필수)
+// 3: 단말기 고정 (필수)
+// 4: GPS 고정 (필수)
+// 5: 시동차단 연결 (필수)
+// 6: 연료배선 연결 (선택)
+// 7: 상시전원 연결 (선택, Non-OBD 설치형태 시 필수)
+let installPhotos = [false, false, false, false, false, false, false, false];
+const PHOTO_ITEMS = [
+  { idx: 0, label: '차량 번호판', sub: '차량 번호판 전체가 보이도록 촬영',       icon: 'plate' },
+  { idx: 1, label: '차대번호',     sub: '차대번호 라벨 촬영 — 카코드 매칭 검증',  icon: 'vin' },
+  { idx: 2, label: '메인배선 연결', sub: '단말기 메인 케이블 연결 상태 촬영',     icon: 'cable' },
+  { idx: 3, label: '단말기 고정',   sub: '설치된 단말기 고정 상태 촬영',           icon: 'device' },
+  { idx: 4, label: 'GPS 고정',      sub: 'GPS 안테나 고정/매립 위치 촬영',         icon: 'gps' },
+  { idx: 5, label: '시동차단 연결', sub: '시동차단 릴레이 배선 연결 상태 촬영',   icon: 'relay' },
+  { idx: 6, label: '연료배선 연결', sub: '유류잔량 배선 연결 상태 (선택)',         icon: 'fuel' },
+  { idx: 7, label: '상시전원 연결', sub: '상시전원 인가 배선 상태 (Non-OBD 필수)', icon: 'power' },
+];
+function isPhotoRequired(idx) {
+  if (idx <= 5) return true;
+  if (idx === 7 && currentItem && currentItem.installType === 'Non-OBD') return true;
+  return false;
+}
+// v4.2: photoMode — 'first'(최초) / 'rework'(재작업, 검증 실패 후 재진입)
+let installTaskDone = false;
+let asItemsDone = {};
+let currentAsIdx = -1;
+let asPhotoCaptured = false;
+let asDeviceFlowActive = false; // true when AS 단말기 교체 uses install flow
+let removalPhotos = [false, false, false];
+let toggleState = { dkey: false, slock: true };
+// v4.2: 사진 촬영 모드는 시스템이 자동 판단 — 'first'(최초) / 'rework'(검증 실패 후 [재작업] 클릭으로 재진입)
+let photoMode = 'first';
+let nonObdMode = false;    // 단말기를 Non-OBD로 호출했는가
+// v5.3: 검증 팝업 관련
+let demoScenario = 'normal'; // 'normal' | 'ex02' | 'ex14' | 'ex15' | 'ex03' | 'ex05' | 'ex12' | 'ex13'
+let verifyResumeCallback = null; // legacy: modalIgnitionOn/Off 콜백
+let _obdContinueAfterActivation = null; // legacy
+let _packetStepCallback = null; // 현재 패킷 팝업 완료 후 재개 콜백
+let _currentPacketStep = -1;   // 현재 표시 중인 팝업 단계 index
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function showScreen(id, pushStack=true) {
+  if (pushStack && currentScreen) screenStack.push(currentScreen);
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active', 'fade-in');
+  currentScreen = id;
+
+  // Header & back button
+  const backBtn = document.getElementById('backBtn');
+  const isRoot = (id === 'screenList' || id === 'screenHistory');
+  backBtn.style.display = isRoot ? 'none' : 'flex';
+
+  // Tab bar visibility
+  document.getElementById('tabBar').style.display = isRoot ? 'flex' : 'none';
+
+  // Header title
+  const titles = {
+    screenList: '배정 작업',
+    screenHistory: '작업 이력',
+    screenDetail: '작업 상세',
+    screenInstallTaskList: '설치 작업',
+    screenDevice: '단말기 선택',
+    screenSettings: '설정 입력',
+    screenConstPower: '상시전원 인가',
+    screenManual: '설치 매뉴얼',
+    screenComponent: '컴포넌트',
+    screenConnector: '커넥터',
+    screenPhotos: '증빙사진',
+    screenValidation: '검증 진행',
+    screenVerifyResult: '검증 결과',
+    screenAsFlow: 'AS 작업',
+    screenAsItem: 'AS 항목 작업',
+    screenRemoval: '탈거 작업',
+    screenHistoryDetail: '작업 상세',
+  };
+  document.getElementById('headerTitle').textContent = titles[id] || '인스톨러';
+  document.getElementById('appContent').scrollTop = 0;
+}
+
+function goBack() {
+  if (screenStack.length > 0) {
+    const prev = screenStack.pop();
+    showScreen(prev, false);
+  }
+}
+
+function backToList() {
+  closeModal('modalDone');
+  screenStack = [];
+  currentItem = null;
+  showScreen('screenList', false);
+  switchTab('list');
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  screenStack = [];
+  document.querySelectorAll('.tab-bar-item').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'list') || (i === 1 && tab === 'history'));
+  });
+  if (tab === 'list') {
+    showScreen('screenList', false);
+    renderAssignedList();
+  } else {
+    showScreen('screenHistory', false);
+    renderHistoryList();
+  }
+}
+
+// ═══════════════════════════════════════════
+// RENDER: Assigned List
+// ═══════════════════════════════════════════
+function getTypeBadge(type) {
+  if (type === '설치') return '<span class="badge b-install">설치</span>';
+  if (type === 'AS') return '<span class="badge b-as">AS</span>';
+  if (type === '탈거') return '<span class="badge b-removal">탈거</span>';
+  return '<span class="badge">' + type + '</span>';
+}
+
+function renderAssignedList(filter='') {
+  const container = document.getElementById('assignedList');
+  const q = filter.toLowerCase();
+  const filtered = assignedData.filter(d =>
+    !q || d.vehicle.toLowerCase().includes(q) || d.company.toLowerCase().includes(q) || d.branch.toLowerCase().includes(q)
+  );
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg><p>검색 결과가 없습니다.</p></div>';
+    return;
+  }
+  container.innerHTML = filtered.map(d => `
+    <div class="list-card" onclick="openDetail(${d.id})" ${d.isTemp?'style="border-left:3px solid #f59e0b;background:#fffbeb;"':''}>
+      <div class="list-card-top">
+        <span class="list-card-vehicle">${d.vehicle}${d.isTemp?' <span style="display:inline-block;margin-left:4px;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#fef3c7;color:#92400e;">임시</span>':''}</span>
+        <span style="display:flex;gap:4px;align-items:center;">
+          ${getTypeBadge(d.type)}
+          <span class="badge" style="background:${d.installType === 'Non-OBD' ? 'rgba(139,92,246,0.12)' : 'rgba(100,116,139,0.12)'};color:${d.installType === 'Non-OBD' ? '#7c3aed' : '#475569'};font-size:11px;padding:2px 8px;">${d.installType || 'OBD'}</span>
+        </span>
+      </div>
+      <!-- v5.0: 차종(차량모델) 표시 -->
+      <div style="font-size:12.5px;color:var(--primary);font-weight:500;margin-top:2px;">${d.carModel||'-'}</div>
+      <div class="list-card-info">
+        <span class="list-card-sub">${d.company} &middot; ${d.branch}</span>
+      </div>
+      <!-- v4.0: 작업 주소 + 업체 담당자 연락처 노출 -->
+      <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;line-height:1.5;">
+        📍 ${d.address||'-'}<br>
+        📞 <a href="tel:${(d.contact||'').replace(/[^0-9]/g,'')}" style="color:var(--primary);text-decoration:underline;font-weight:600;" onclick="event.stopPropagation();">${d.contact||'-'}</a>
+      </div>
+      <div class="list-card-bottom">
+        <span class="list-card-date">작업 요청일: ${d.date}</span>
+        <span style="font-size:18px;color:var(--text-muted);">&#8250;</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterList() {
+  renderAssignedList(document.getElementById('searchList').value);
+}
+
+// ═══════════════════════════════════════════
+// RENDER: History List
+// ═══════════════════════════════════════════
+function renderHistoryList() {
+  const container = document.getElementById('historyList');
+  const q = (document.getElementById('searchHistory').value || '').toLowerCase();
+  const yr = document.getElementById('filterYear').value;
+  const mo = document.getElementById('filterMonth').value;
+  let filtered = historyData.filter(d => {
+    // v3.3: 취소 건 이력 미표시
+    if (d.result === '취소' || d.result === 'CANCELLED') return false;
+    if (q && !(d.vehicle.toLowerCase().includes(q) || d.company.toLowerCase().includes(q) || d.branch.toLowerCase().includes(q))) return false;
+    const dt = d.completedAt.substring(0, 10);
+    if (yr && !dt.startsWith(yr)) return false;
+    if (mo && dt.substring(5, 7) !== mo) return false;
+    return true;
+  });
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><p>이력이 없습니다.</p></div>';
+    return;
+  }
+  container.innerHTML = filtered.map(d => {
+    const resultBadge = d.result === '완료'
+      ? '<span class="badge b-completed">완료</span>'
+      : '<span class="badge b-unable">작업불가</span>';
+    return `
+    <div class="list-card" onclick="openHistoryDetail(${d.id})">
+      <div class="list-card-top">
+        <span class="list-card-vehicle">${d.vehicle}</span>
+        ${getTypeBadge(d.type)}
+      </div>
+      <div class="list-card-info">
+        <span class="list-card-sub">${d.company} &middot; ${d.branch}</span>
+      </div>
+      <div class="list-card-bottom">
+        <span class="list-card-date">${d.completedAt}</span>
+        ${resultBadge}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterHistory() { renderHistoryList(); }
+
+// ═══════════════════════════════════════════
+// DETAIL VIEW
+// ═══════════════════════════════════════════
+function openDetail(id) {
+  currentItem = assignedData.find(d => d.id === id);
+  if (!currentItem) return;
+  document.getElementById('detVehicle').textContent = currentItem.vehicle + (currentItem.isTemp?' (임시)':'');
+  // v5.0: 차종 표시
+  document.getElementById('detCarModel').textContent = currentItem.carModel || '-';
+  document.getElementById('detCompany').textContent = currentItem.company;
+  document.getElementById('detBranch').textContent = currentItem.branch;
+  document.getElementById('detType').innerHTML = getTypeBadge(currentItem.type);
+  document.getElementById('detInstallType').textContent = currentItem.installType || 'OBD';
+  document.getElementById('detDate').textContent = currentItem.date;
+  // v4.0: 작업 주소 + 업체 담당자 연락처
+  document.getElementById('detAddress').textContent = currentItem.address || '-';
+  const contactEl = document.getElementById('detContact');
+  contactEl.textContent = currentItem.contact || '-';
+  contactEl.href = 'tel:' + (currentItem.contact || '').replace(/[^0-9]/g,'');
+  // v4.0: 임시 등록 배너
+  document.getElementById('detTempBanner').style.display = currentItem.isTemp ? 'block' : 'none';
+
+  // Admin memo
+  const memoEl = document.getElementById('detAdminMemo');
+  if (currentItem.adminMemo) {
+    memoEl.style.display = 'block';
+    document.getElementById('detAdminMemoText').textContent = currentItem.adminMemo;
+  } else {
+    memoEl.style.display = 'none';
+  }
+
+  // AS info
+  const asInfo = document.getElementById('detAsInfo');
+  if (currentItem.type === 'AS' && currentItem.asItems.length) {
+    asInfo.style.display = 'block';
+    document.getElementById('detAsItems').innerHTML = currentItem.asItems.map(item =>
+      `<div style="padding:6px 0;font-size:14px;border-bottom:1px solid #f0f0f0;">&bull; ${item}</div>`
+    ).join('');
+  } else {
+    asInfo.style.display = 'none';
+  }
+  showScreen('screenDetail');
+}
+
+// ═══════════════════════════════════════════
+// START WORK
+// ═══════════════════════════════════════════
+function startWork() {
+  if (!currentItem) return;
+  // v4.0: 임시 등록 차량 → 작업 시작 차단 + 안내 팝업
+  if (currentItem.isTemp) {
+    alert('해당 차량은 카코드 확인이 필요합니다.\n\n운영팀에 차대번호 전달 및 문의 부탁 드립니다.\n\n(운영팀이 정상 차량으로 교체한 후 작업 목록을 새로고침하여 다시 진입해 주세요.)');
+    return;
+  }
+  // Reset state
+  selectedDevice = null;
+  installPhotos = [false, false, false, false, false, false, false, false]; // v4.2: 8장 (필수 6 + 선택 2)
+  installTaskDone = false;
+  asItemsDone = {};
+  currentAsIdx = -1;
+  asPhotoCaptured = false;
+  removalPhotos = [false, false, false];
+  toggleState = { dkey: currentItem.dkey, slock: currentItem.slock };
+  photoMode = 'first'; // v4.2: 신규 작업 시작 — 최초 촬영 모드
+  nonObdMode = false;  // v4.0: Non-OBD 호출 상태 초기화
+
+  if (currentItem.type === '설치') {
+    // Show 작업 목록 first (new flow)
+    renderInstallTaskList();
+    showScreen('screenInstallTaskList');
+  } else if (currentItem.type === 'AS') {
+    initAsFlow();
+    showScreen('screenAsFlow');
+  } else if (currentItem.type === '탈거') {
+    showRemovalConfirm();
+  }
+}
+
+// ═══════════════════════════════════════════
+// INSTALL TASK LIST (NEW)
+// ═══════════════════════════════════════════
+function renderInstallTaskList() {
+  const container = document.getElementById('installTaskItems');
+  const done = installTaskDone;
+  container.innerHTML = `
+    <div class="task-list-item${done ? ' done' : ''}" onclick="${done ? '' : 'startInstallSubFlow()'}">
+      <div class="task-checkbox">${done ? '&#10003;' : ''}</div>
+      <span class="task-text">설치 작업</span>
+      <span class="task-status">${done ? '완료' : '미완료'}</span>
+      <span style="font-size:18px;color:var(--text-muted);">&#8250;</span>
+    </div>
+  `;
+  // Update verify button
+  const btn = document.getElementById('btnInstallVerify');
+  btn.className = done ? 'btn-full btn-primary' : 'btn-full btn-disabled';
+}
+
+function startInstallSubFlow() {
+  initDeviceGrid();
+  installStep(1);
+}
+
+// ═══════════════════════════════════════════
+// INSTALL FLOW
+// ═══════════════════════════════════════════
+function installStep(step) {
+  // v3.2: 7 steps — device, settings, constPower, manual, component, connector, photos
+  const totalSteps = 7;
+  // v3.2: 조건부 스킵 제거 — 모든 이미지 항상 표시
+
+  const stepScreenMap = {
+    1: 'screenDevice',
+    2: 'screenSettings',
+    3: 'screenConstPower',
+    4: 'screenManual',
+    5: 'screenComponent',
+    6: 'screenConnector',
+    7: 'screenPhotos',
+  };
+
+  const screenId = stepScreenMap[step];
+  if (!screenId) return;
+
+  // Update wizard dots for this step
+  updateWizardDots(step, totalSteps);
+
+  // Specific setup
+  if (step === 2) {
+    document.getElementById('toggleDkey').classList.toggle('on', toggleState.dkey);
+    document.getElementById('dkeyLabel').textContent = toggleState.dkey ? '설치' : '미설치';
+    document.getElementById('toggleSlock').classList.toggle('on', toggleState.slock);
+    document.getElementById('slockLabel').textContent = toggleState.slock ? '설치' : '미설치';
+    // v4.2: [Non-OBD 호출] 버튼은 차량 설치형태가 Non-OBD인 경우에만 노출
+    const isNonObdVehicle = currentItem && currentItem.installType === 'Non-OBD';
+    const btnNonObd = document.getElementById('btnNonObdCall');
+    const hintNonObd = document.getElementById('nonObdHint');
+    if (btnNonObd) btnNonObd.style.display = isNonObdVehicle ? 'inline-block' : 'none';
+    if (hintNonObd) hintNonObd.style.display = isNonObdVehicle ? 'block' : 'none';
+    // OBD 차량인 경우 호출 결과·nonObdMode 초기화 (재진입 대비)
+    if (!isNonObdVehicle) {
+      nonObdMode = false;
+      const r = document.getElementById('nonObdResult');
+      if (r) r.style.display = 'none';
+      if (btnNonObd) {
+        btnNonObd.disabled = false;
+        btnNonObd.style.opacity = '1';
+        btnNonObd.textContent = 'Non-OBD 호출';
+        btnNonObd.style.background = '#7c3aed';
+      }
+    }
+    // v5.0: [다음] 버튼 상태 동기화
+    updateSettingsNextState();
+  }
+  // v5.1: 이미지 유무에 따른 분기 (4종 공통, 어드민 설치 매뉴얼 관리 연동 기준)
+  if (step === 3 && currentItem) {
+    // 상시전원 인가: OBD 여부 무관, 어드민 등록 여부로 결정
+    const hasImg = currentItem.hasConstPowerImg !== false;
+    document.getElementById('constPowerImgArea').style.display = hasImg ? '' : 'none';
+    document.getElementById('constPowerFallback').style.display = hasImg ? 'none' : 'block';
+  }
+  if (step === 4 && currentItem) {
+    // 설치 매뉴얼: 어드민 등록 여부로 결정
+    const hasImg = currentItem.hasManualImg !== false;
+    document.getElementById('manualImgArea').style.display = hasImg ? '' : 'none';
+    document.getElementById('manualFallback').style.display = hasImg ? 'none' : 'block';
+  }
+  if (step === 5 && currentItem) {
+    // 컴포넌트: 어드민 등록 여부로 결정
+    const hasImg = currentItem.hasComponentImg !== false;
+    document.getElementById('componentImgArea').style.display = hasImg ? '' : 'none';
+    document.getElementById('componentFallback').style.display = hasImg ? 'none' : 'block';
+  }
+  // v5.1: 커넥터 이미지 유무에 따른 분기
+  if (step === 6 && currentItem) {
+    const hasImg = currentItem.hasConnectorImg !== false;
+    document.getElementById('connectorImgArea').style.display = hasImg ? '' : 'none';
+    document.getElementById('connectorFallback').style.display = hasImg ? 'none' : 'block';
+  }
+  if (step === 7) { renderPhotoGrid(); }
+
+  showScreen(screenId);
+}
+
+function updateWizardDots(currentStep, total) {
+  for (let i = 1; i <= 7; i++) {
+    const el = document.getElementById('wizProgress' + i);
+    if (!el) continue;
+    let html = '';
+    for (let s = 1; s <= total; s++) {
+      let cls = 'wizard-dot';
+      if (s < currentStep) cls += ' done';
+      else if (s === currentStep) cls += ' active';
+      html += `<div class="${cls}"></div>`;
+    }
+    el.innerHTML = html;
+  }
+}
+
+// Device Grid
+function initDeviceGrid() {
+  const grid = document.getElementById('deviceGrid');
+  grid.innerHTML = deviceModels.map(m =>
+    `<button class="device-btn" onclick="selectDevice('${m}', this)">${m}</button>`
+  ).join('');
+  document.getElementById('selectedDeviceLabel').textContent = '—';
+  document.getElementById('btnDeviceNext').style.opacity = '0.4';
+  document.getElementById('btnDeviceNext').style.pointerEvents = 'none';
+}
+
+function selectDevice(model, el) {
+  selectedDevice = model;
+  document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('selectedDeviceLabel').textContent = model;
+  document.getElementById('btnDeviceNext').style.opacity = '1';
+  document.getElementById('btnDeviceNext').style.pointerEvents = 'auto';
+}
+
+// Toggle — v3.1: disabled (읽기 전용, 기사 수정 불가)
+function toggleSwitch(key) {
+  // v3.1: 디지털차키/시동잠금은 읽기 전용. 수정 필요 시 운영팀이 어드민에서 수정.
+  return;
+  toggleState[key] = !toggleState[key];
+  const el = document.getElementById(key === 'dkey' ? 'toggleDkey' : 'toggleSlock');
+  el.classList.toggle('on', toggleState[key]);
+  const lbl = document.getElementById(key === 'dkey' ? 'dkeyLabel' : 'slockLabel');
+  lbl.textContent = toggleState[key] ? '설치' : '미설치';
+}
+
+// Photos
+// v4.2: 증빙사진 페이지 렌더링 — PHOTO_ITEMS 기반 동적 생성
+function renderPhotoGrid() {
+  const grid = document.getElementById('photoGrid');
+  if (!grid) return;
+  // 안내 배너 전환
+  const banner = document.getElementById('photoModeBanner');
+  if (banner) {
+    if (photoMode === 'rework') {
+      banner.className = 'photo-mode-banner rework';
+      banner.innerHTML = '🔁 <strong>재작업 모드</strong> — 검증 실패로 재진입했습니다. 각 항목은 <strong>촬영하기</strong>로 새로 촬영하거나, <strong>첨부하기</strong>로 갤러리에서 선택할 수 있습니다.';
+    } else {
+      banner.className = 'photo-mode-banner first';
+      banner.innerHTML = '📷 <strong>최초 촬영 모드</strong> — 각 항목을 <strong>촬영하기</strong> 버튼으로 촬영해 주세요. 촬영 후 재촬영을 원할 경우 <strong>재촬영</strong> 버튼을 누르세요.';
+    }
+  }
+  grid.innerHTML = PHOTO_ITEMS.map(item => {
+    const i = item.idx;
+    const required = isPhotoRequired(i);
+    const captured = installPhotos[i];
+    // 배지
+    let badge;
+    if (i === 7 && currentItem && currentItem.installType === 'Non-OBD') {
+      badge = '<span class="photo-req-badge req-nobd">Non-OBD 필수</span>';
+    } else if (required) {
+      badge = '<span class="photo-req-badge req">필수</span>';
+    } else {
+      badge = '<span class="photo-req-badge opt">선택</span>';
+    }
+    // 버튼 영역
+    let btnRow;
+    if (captured) {
+      // 촬영 완료 → 재촬영 버튼
+      btnRow = `<div class="photo-btn-row">
+        <button type="button" class="photo-upload-btn retake" onclick="retakePhoto(${i})">재촬영</button>
+        ${photoMode === 'rework' ? `<button type="button" class="photo-upload-btn attach" onclick="pickFromAlbum(${i})">첨부하기</button>` : ''}
+      </div>`;
+    } else {
+      // 미촬영 — 촬영하기 (+ 재작업 모드 시 첨부하기)
+      btnRow = `<div class="photo-btn-row">
+        <button type="button" class="photo-upload-btn" onclick="capturePhoto(${i})">촬영하기</button>
+        ${photoMode === 'rework' ? `<button type="button" class="photo-upload-btn attach" onclick="pickFromAlbum(${i})">첨부하기</button>` : ''}
+      </div>`;
+    }
+    // 썸네일 프리뷰 (촬영됨 표시)
+    const preview = `<div class="photo-preview">📷</div>`;
+    // 촬영 전 아이콘
+    const icon = `<svg class="photo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
+    return `
+      <div class="photo-upload${captured ? ' captured' : ''}" id="photo${i}">
+        ${preview}
+        ${icon}
+        <div class="photo-label">${i + 1}. ${item.label} ${badge}</div>
+        <div class="photo-sub">${item.sub}</div>
+        ${btnRow}
+      </div>`;
+  }).join('');
+  updatePhotoCompleteState();
+}
+
+function capturePhoto(idx) {
+  installPhotos[idx] = true;
+  renderPhotoGrid();
+}
+
+// v4.2: 재촬영 — 기존 사진을 폐기하고 촬영 상태 해제
+function retakePhoto(idx) {
+  installPhotos[idx] = false;
+  renderPhotoGrid();
+}
+
+// v4.2: 갤러리에서 사진 선택 — 재작업 모드에서만 노출됨
+function pickFromAlbum(idx) {
+  if (photoMode !== 'rework') return;
+  installPhotos[idx] = true;
+  renderPhotoGrid();
+}
+
+// v4.2: [작업 완료] 버튼 활성화 — 필수 항목만 검사
+function updatePhotoCompleteState() {
+  let allRequiredDone = true;
+  for (let i = 0; i < PHOTO_ITEMS.length; i++) {
+    if (isPhotoRequired(i) && !installPhotos[i]) { allRequiredDone = false; break; }
+  }
+  const btn = document.getElementById('btnPhotoComplete');
+  if (btn) btn.className = allRequiredDone ? 'btn-full btn-primary' : 'btn-full btn-disabled';
+}
+
+// v4.2 호환 — 기존 호출부 유지용 alias
+function updatePhotoState() { renderPhotoGrid(); }
+
+// v4.0: Non-OBD 호출 / v5.0: 성공 시 [다음] 활성화
+function callNonObd() {
+  const sn = document.getElementById('inputSN').value.trim();
+  if (!sn) { alert('단말기 일련번호를 먼저 입력해주세요.'); return; }
+  const btn = document.getElementById('btnNonObdCall');
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  btn.textContent = '호출 중...';
+  setTimeout(() => {
+    nonObdMode = true;
+    btn.textContent = 'Non-OBD ✓';
+    btn.style.background = '#15ab39';
+    const r = document.getElementById('nonObdResult');
+    r.style.display = 'block';
+    r.style.background = '#ecfdf5';
+    r.style.border = '1px solid #86efac';
+    r.style.color = '#166534';
+    r.innerHTML = '✓ 단말기 ' + sn + ' Non-OBD 모드 변환 완료. 검증 단계가 시동 ON/OFF 테스트로 자동 전환됩니다.';
+    // v5.0: [다음] 버튼 활성화
+    updateSettingsNextState();
+  }, 1200);
+}
+
+// v5.0: 설정 페이지 [다음] 버튼 상태 동기화 (Non-OBD 차량에서 호출 선행 필수)
+function updateSettingsNextState() {
+  const isNonOBD = currentItem && currentItem.installType === 'Non-OBD';
+  const btnNext = document.getElementById('btnSettingsNext');
+  const hint = document.getElementById('nonObdHintBox');
+  if (!btnNext) return;
+  if (isNonOBD && !nonObdMode) {
+    btnNext.style.opacity = '0.4';
+    btnNext.style.pointerEvents = 'none';
+    if (hint) hint.style.display = 'block';
+  } else {
+    btnNext.style.opacity = '1';
+    btnNext.style.pointerEvents = 'auto';
+    if (hint) hint.style.display = 'none';
+  }
+}
+
+// v5.0: [다음] 버튼 클릭 — Non-OBD 미호출 시 토스트
+function tryInstallStep3() {
+  const isNonOBD = currentItem && currentItem.installType === 'Non-OBD';
+  if (isNonOBD && !nonObdMode) {
+    alert('Non-OBD 호출을 먼저 진행해 주세요. (v5.0)\n\n본 차량은 설치형태가 Non-OBD이므로 [Non-OBD 호출] 버튼을 통해 단말기를 Non-OBD 모드로 변환한 뒤 다음 단계로 진행할 수 있습니다.');
+    return;
+  }
+  installStep(3);
+}
+
+// Complete install sub-task → go back to task list (or AS task list if from AS)
+function completeInstallTask() {
+  if (asDeviceFlowActive) {
+    // AS 단말기 교체에서 설치 플로우 완료 → AS 작업 목록으로 복귀
+    asDeviceFlowActive = false;
+    if (currentAsIdx >= 0) {
+      asItemsDone[currentAsIdx] = true;
+    }
+    while (screenStack.length > 0 && screenStack[screenStack.length - 1] !== 'screenAsFlow') {
+      screenStack.pop();
+    }
+    showScreen('screenAsFlow', false);
+    renderAsItems();
+    return;
+  }
+  installTaskDone = true;
+  // Pop back to the task list screen
+  while (screenStack.length > 0 && screenStack[screenStack.length - 1] !== 'screenInstallTaskList') {
+    screenStack.pop();
+  }
+  showScreen('screenInstallTaskList', false);
+  renderInstallTaskList();
+}
+
+// ═══════════════════════════════════════════
+// VERIFICATION (shared by 설치 and AS)
+// ═══════════════════════════════════════════
+function startVerification() {
+  initValidation(true); // 시작 버튼 노출 — 사용자가 시나리오 선택 후 직접 누름
+  showScreen('screenValidation');
+}
+
+function beginValidation() {
+  runValidation(); // runValidation() 내부에서 시작 버튼 자동 숨김
+}
+
+function initValidation(showStart = true) {
+  const list = document.getElementById('validationList');
+  // v4.2: Non-OBD 모드 — 패스되는 단계(OBD 초기화·CarDB·운행 패킷 유효성 8단계)는 리스트에 표시하지 않음
+  const isNonOBD = (currentItem && currentItem.installType === 'Non-OBD') || nonObdMode;
+  const steps = isNonOBD ? [] : [...validationSteps];
+  list.innerHTML = steps.map((s, i) =>
+    `<div class="val-item" id="valItem${i}">
+      <div class="val-icon pending" id="valIcon${i}">&#9679;</div>
+      <span class="val-text">${s}</span>
+      <span class="val-status" id="valStatus${i}">대기</span>
+    </div>`
+  ).join('');
+  // Non-OBD 모드 시 리스트 영역이 비어있으면 안내 문구로 대체
+  if (isNonOBD) {
+    list.innerHTML = `<div style="margin:0 16px 12px;padding:16px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:10px;text-align:center;color:#6d28d9;font-size:13px;line-height:1.5;">
+      <strong>Non-OBD 모드 검증</strong><br>
+      <span style="font-size:12px;color:#7c3aed;">CarDB 설치 / 운행 패킷 유효성 체크는 패스됩니다.<br>아래의 시동 ON/OFF 테스트를 진행해 주세요.</span>
+    </div>`;
+  }
+  // v3.2: 시동잠금 테스트 영역 초기화
+  const elts = document.getElementById('engineLockTestSection');
+  if (elts) { elts.style.display = 'none'; }
+  const btn = document.getElementById('btnEngineLockTest');
+  if (btn) { btn.textContent = '시동잠금 테스트'; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
+  const result = document.getElementById('engineLockTestResult');
+  if (result) { result.style.display = 'none'; }
+  // v4.0: Non-OBD 시동 ON/OFF 테스트 영역 초기화
+  const nob = document.getElementById('nonObdEngineTestSection');
+  if (nob) { nob.style.display = 'none'; }
+  const nobOn = document.getElementById('btnNonObdOn');
+  if (nobOn) { nobOn.textContent = '시작'; nobOn.disabled = false; nobOn.style.background = '#7c3aed'; nobOn.style.color = 'white'; nobOn.style.cursor = 'pointer'; }
+  const nobOff = document.getElementById('btnNonObdOff');
+  if (nobOff) { nobOff.textContent = '대기'; nobOff.disabled = true; nobOff.style.background = '#e5e7eb'; nobOff.style.color = '#9ca3af'; nobOff.style.cursor = 'not-allowed'; }
+  const nobStep1 = document.getElementById('nonObdTestStep1');
+  if (nobStep1) { nobStep1.style.borderColor = '#e5e7eb'; }
+  const nobStep2 = document.getElementById('nonObdTestStep2');
+  if (nobStep2) { nobStep2.style.borderColor = '#e5e7eb'; nobStep2.style.opacity = '0.5'; }
+  const nobResult = document.getElementById('nonObdTestResult');
+  if (nobResult) { nobResult.style.display = 'none'; }
+
+  // v5.3: 시나리오 바 전환 + 상태 초기화
+  const isNonOBDMode = (currentItem && currentItem.installType === 'Non-OBD') || nonObdMode;
+  const obdBar = document.getElementById('obdScenarioBar');
+  const nonObdBar = document.getElementById('nonObdScenarioBar');
+  if (obdBar) obdBar.style.display = isNonOBDMode ? 'none' : 'block';
+  if (nonObdBar) nonObdBar.style.display = isNonOBDMode ? 'block' : 'none';
+  demoScenario = 'normal';
+  verifyResumeCallback = null;
+  _obdContinueAfterActivation = null;
+  _packetStepCallback = null;
+  _currentPacketStep = -1;
+  document.getElementById('modalPacketCheck').classList.remove('open');
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+  const firstBtns = document.querySelectorAll('#obdScenarioBar .scenario-btn:first-child, #nonObdScenarioBar .scenario-btn:first-child');
+  firstBtns.forEach(b => b.classList.add('active'));
+  // 검증 시작 버튼 표시/숨김
+  const startWrap = document.getElementById('verifyStartBtnWrap');
+  if (startWrap) startWrap.style.display = showStart ? 'block' : 'none';
+}
+
+// v5.5: startFrom 파라미터 추가 — 특정 단계부터 재시작 지원 (EX-14: 1, EX-15: 2)
+function runValidation(startFrom = 0) {
+  // 검증 시작 버튼 항상 숨김 (시작/재시도 모든 경로 커버)
+  const startWrap = document.getElementById('verifyStartBtnWrap');
+  if (startWrap) startWrap.style.display = 'none';
+
+  const isNonOBD = (currentItem && currentItem.installType === 'Non-OBD') || nonObdMode;
+  if (isNonOBD) {
+    setTimeout(() => { showNonObdEngineTest(); }, 400);
+    return;
+  }
+
+  // EX-05 OBD 패스트트랙: 12단계 자동 완료 후 시동잠금 테스트 바로 표시
+  if (demoScenario === 'ex05') {
+    for (let i = 0; i < validationSteps.length; i++) {
+      const icon = document.getElementById('valIcon' + i);
+      const status = document.getElementById('valStatus' + i);
+      const item = document.getElementById('valItem' + i);
+      if (icon) { icon.className = 'val-icon done'; icon.innerHTML = '&#10003;'; }
+      if (status) { status.textContent = '완료'; status.style.color = 'var(--st-completed)'; }
+      if (item) item.classList.add('done');
+    }
+    setTimeout(() => { document.getElementById('engineLockTestSection').style.display = 'block'; }, 400);
+    return;
+  }
+
+  function animateStep(i, callback) {
+    const icon = document.getElementById('valIcon' + i);
+    const status = document.getElementById('valStatus' + i);
+    if (!icon || !status) { if (callback) callback(); return; }
+    icon.className = 'val-icon running';
+    icon.innerHTML = '<div class="spinner"></div>';
+    status.textContent = '진행 중...';
+    setTimeout(() => {
+      icon.className = 'val-icon done';
+      icon.innerHTML = '&#10003;';
+      status.textContent = '완료';
+      status.style.color = 'var(--st-completed)';
+      const item = document.getElementById('valItem' + i);
+      if (item) item.classList.add('done');
+      if (callback) callback();
+    }, 400 + Math.random() * 300);
+  }
+
+  function afterAllSteps() {
+    if (toggleState.slock || demoScenario === 'ex05') {
+      setTimeout(() => { document.getElementById('engineLockTestSection').style.display = 'block'; }, 400);
+    } else {
+      setTimeout(() => { showVerifyResult(); }, 400);
+    }
+  }
+
+  function next(i) {
+    if (i >= validationSteps.length) { afterAllSteps(); return; }
+
+    // EX-02: OBD 초기화 실패 시뮬레이션
+    if (i === 0 && demoScenario === 'ex02') {
+      const icon = document.getElementById('valIcon0');
+      const status = document.getElementById('valStatus0');
+      if (icon) { icon.className = 'val-icon running'; icon.innerHTML = '<div class="spinner"></div>'; }
+      if (status) { status.textContent = '진행 중...'; }
+      setTimeout(() => {
+        if (icon) { icon.className = 'val-icon fail'; icon.innerHTML = '&#10007;'; }
+        if (status) { status.textContent = '실패'; status.style.color = '#dc2626'; }
+        document.getElementById('modalEx02').classList.add('open');
+      }, 800);
+      return;
+    }
+
+    // EX-14: CarDB 설치 실패 시뮬레이션 (step 1)
+    if (i === 1 && demoScenario === 'ex14') {
+      const icon = document.getElementById('valIcon1');
+      const status = document.getElementById('valStatus1');
+      if (icon) { icon.className = 'val-icon running'; icon.innerHTML = '<div class="spinner"></div>'; }
+      if (status) { status.textContent = '진행 중...'; }
+      setTimeout(() => {
+        if (icon) { icon.className = 'val-icon fail'; icon.innerHTML = '&#10007;'; }
+        if (status) { status.textContent = '설치 실패'; status.style.color = '#dc2626'; }
+        document.getElementById('modalEx14').classList.add('open');
+      }, 800);
+      return;
+    }
+
+    // EX-15: CarDB 결과 체크 실패 시뮬레이션 (step 2)
+    if (i === 2 && demoScenario === 'ex15') {
+      const icon = document.getElementById('valIcon2');
+      const status = document.getElementById('valStatus2');
+      if (icon) { icon.className = 'val-icon running'; icon.innerHTML = '<div class="spinner"></div>'; }
+      if (status) { status.textContent = '진행 중...'; }
+      setTimeout(() => {
+        if (icon) { icon.className = 'val-icon fail'; icon.innerHTML = '&#10007;'; }
+        if (status) { status.textContent = '검증 실패'; status.style.color = '#dc2626'; }
+        document.getElementById('modalEx15').classList.add('open');
+      }, 800);
+      return;
+    }
+
+    // Steps 3~10: 팝업 표시 후 애니메이션 진행
+    if (i >= 3 && i <= 10 && PACKET_STEP_CONFIG[i]) {
+      // EX-03: 6/8 (index 8) 단계에서 Activation 타임아웃 — [아니오] 클릭 시 발생
+      showPacketCheckPopup(i, () => { animateStep(i, () => next(i + 1)); });
+      return;
+    }
+
+    // Steps 0, 1, 2, 11: 자동 진행
+    animateStep(i, () => next(i + 1));
+  }
+
+  next(startFrom);
+}
+
+function showVerifyResult() {
+  // v5.0: 차량번호·차종 헤더 세팅
+  if (currentItem) {
+    document.getElementById('verifyResultVehicle').textContent = currentItem.vehicle + (currentItem.isTemp?' (임시)':'');
+    document.getElementById('verifyResultCarModel').textContent = currentItem.carModel || '';
+  }
+  const grid = document.getElementById('verifyResultGrid');
+  // v3.5: Build dynamic result — 11 items (시동제어 테스트 삭제 — 시동감지와 중복)
+  const items = [
+    { label:'단말기 기종', value: selectedDevice || 'CAMD3000BK', type:'info' },
+    { label:'단말기 SN', value: document.getElementById('inputSN')?.value || 'BL_2501_1399', type:'info' },
+    { label:'디지털차키', value: toggleState.dkey ? '설치' : '미설치', type:'info' },
+    { label:'시동잠금', value: toggleState.slock ? '설치' : '미설치', type:'info' },
+    { label:'GPS 좌표', value:'37.4979, 127.0276', type:'info' },
+    { label:'총 주행거리', value: (document.getElementById('inputMileage')?.value || '15230').replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' km', type:'info' },
+    { label:'연료잔량', value:'45%', type:'info' },
+    { label:'단말기 전원연결', value:'정상', type:'critical', pass:true },
+    { label:'시동감지', value:'정상', type:'critical', pass:true },
+    { label:'시동잠금 제어 검증', value: toggleState.slock ? '정상' : 'N/A', type: toggleState.slock ? 'critical' : 'info', pass: toggleState.slock ? true : undefined },
+    { label:'GPS 감도', value:'정상', type:'gps', pass:true },
+  ];
+
+  let html = '';
+  items.forEach(item => {
+    let valueClass = '';
+    let valuePrefix = '';
+    if (item.type === 'critical' || item.type === 'gps') {
+      if (item.pass) {
+        valueClass = 'pass';
+        valuePrefix = '&#10003; ';
+      } else {
+        valueClass = 'fail';
+        valuePrefix = '&#9888; ';
+      }
+    }
+    html += `<div class="verify-card">
+      <span class="verify-card-label">${item.label}</span>
+      <span class="verify-card-value ${valueClass}">${valuePrefix}${item.pass !== undefined ? (item.pass ? '정상' : '비정상') : item.value}</span>
+    </div>`;
+
+    // v3.3: GPS 감도 비정상 시 "비정상 (음영지역)" 표시 + 확인 체크박스
+    if (item.type === 'gps' && !item.pass) {
+      html += `<div class="gps-checkbox-wrap" style="margin:0 0 8px;">
+        <input type="checkbox" id="gpsAcknowledge">
+        <label for="gpsAcknowledge">GPS 감도: 비정상 (음영지역) — 음영지역으로 GPS 감도 확인이 불가능합니다</label>
+      </div>`;
+    }
+  });
+
+  grid.innerHTML = html;
+
+  // Check if any critical items fail
+  const criticalFails = items.filter(i => i.type === 'critical' && !i.pass);
+  const warningEl = document.getElementById('verifyWarning');
+  const completeBtn = document.getElementById('btnVerifyComplete');
+
+  // v5.0: [재검증] 버튼 노출 제어 — 전원연결/시동감지/시동잠금 제어 비정상 시 활성화
+  const btnReverify = document.getElementById('btnReverify');
+  if (criticalFails.length > 0) {
+    warningEl.style.display = 'block';
+    completeBtn.style.background = '#d1d5db';
+    completeBtn.style.color = '#9ca3af';
+    completeBtn.style.pointerEvents = 'none';
+    btnReverify.style.display = 'block';
+  } else {
+    warningEl.style.display = 'none';
+    completeBtn.style.background = 'var(--primary)';
+    completeBtn.style.color = 'white';
+    completeBtn.style.pointerEvents = 'auto';
+    btnReverify.style.display = 'none';
+  }
+
+  showScreen('screenVerifyResult');
+}
+
+// v5.0: 재검증 — 설치 재진행 없이 검증만 재실행
+function handleReverify() {
+  initValidation(false); // 단계 초기화, 시작 버튼 미표시
+  showScreen('screenValidation');
+  setTimeout(() => { runValidation(); }, 300);
+}
+
+// v5.1 proto: 검증 결과 케이스 전환 (정상 / 비정상 — [재검증] 버튼 확인용)
+function previewVerifyCase(mode) {
+  const warningEl = document.getElementById('verifyWarning');
+  const completeBtn = document.getElementById('btnVerifyComplete');
+  const btnReverify = document.getElementById('btnReverify');
+  const grid = document.getElementById('verifyResultGrid');
+
+  // 차량 헤더 설정 (현재 선택된 항목 또는 mock)
+  const vehicle = (currentItem && currentItem.vehicleNo) || '12가 3456';
+  const carModel = (currentItem && currentItem.carModel) || 'K5';
+  const el1 = document.getElementById('verifyResultVehicle');
+  const el2 = document.getElementById('verifyResultCarModel');
+  if (el1) el1.textContent = vehicle;
+  if (el2) el2.textContent = carModel;
+
+  const allLabels = [
+    '단말기 기종','SN','디지털차키','시동잠금','GPS좌표','총주행거리',
+    '연료잔량','단말기전원연결','시동감지','시동잠금제어검증','GPS감도'
+  ];
+  const criticals = ['단말기전원연결','시동감지','시동잠금제어검증'];
+
+  if (mode === 'pass') {
+    // 정상 케이스 — 모든 항목 정상, [재검증] 숨김, [작업 완료] 활성화
+    grid.innerHTML = allLabels.map(label =>
+      `<div class="verify-card">
+        <span class="verify-card-label">${label}</span>
+        <span class="verify-card-value pass">&#10003; 정상</span>
+      </div>`).join('');
+    warningEl.style.display = 'none';
+    completeBtn.style.background = 'var(--primary)';
+    completeBtn.style.color = 'white';
+    completeBtn.style.pointerEvents = 'auto';
+    btnReverify.style.display = 'none';
+  } else {
+    // 비정상 케이스 — 단말기전원연결/시동감지/시동잠금제어검증 FAIL → [재검증] 버튼 활성화
+    grid.innerHTML = allLabels.map(label => {
+      const isFail = criticals.includes(label);
+      return `<div class="verify-card">
+        <span class="verify-card-label">${label}</span>
+        <span class="verify-card-value ${isFail ? 'fail' : 'pass'}">${isFail ? '비정상' : '&#10003; 정상'}</span>
+      </div>`;
+    }).join('');
+    warningEl.style.display = 'block';
+    completeBtn.style.background = '#d1d5db';
+    completeBtn.style.color = '#9ca3af';
+    completeBtn.style.pointerEvents = 'none';
+    btnReverify.style.display = 'block';
+  }
+}
+
+// v5.1 proto: 이미지 화면 있음/없음 케이스 전환
+function toggleImgCase(type, mode) {
+  const map = {
+    constPower: { img: 'constPowerImgArea', fallback: 'constPowerFallback' },
+    manual:     { img: 'manualImgArea',     fallback: 'manualFallback' },
+    component:  { img: 'componentImgArea',  fallback: 'componentFallback' },
+    connector:  { img: 'connectorImgArea',  fallback: 'connectorFallback' },
+  };
+  const ids = map[type];
+  if (!ids) return;
+  const imgEl = document.getElementById(ids.img);
+  const fbEl  = document.getElementById(ids.fallback);
+  if (!imgEl || !fbEl) return;
+  if (mode === 'img') {
+    imgEl.style.display = '';
+    fbEl.style.display  = 'none';
+  } else {
+    imgEl.style.display = 'none';
+    fbEl.style.display  = 'block';
+  }
+}
+
+function handleRework() {
+  // v4.2: 재작업 모드 진입 — 검증 실패 후 설치 프로세스 재진행. 이후 증빙사진 페이지 재진입 시 첨부하기 버튼 노출.
+  photoMode = 'rework';
+  // Go back to task list (install or AS)
+  // Clear the stack and go back
+  while (screenStack.length > 0) {
+    const top = screenStack[screenStack.length - 1];
+    if (top === 'screenInstallTaskList' || top === 'screenAsFlow') {
+      showScreen(top, false);
+      // Reset task completion state for rework
+      if (top === 'screenInstallTaskList') {
+        installTaskDone = false;
+        installPhotos = [false, false, false, false, false, false, false, false]; // v4.2: 8장
+        renderInstallTaskList();
+      } else {
+        // For AS, reset all items
+        Object.keys(asItemsDone).forEach(k => { asItemsDone[k] = false; });
+        renderAsItems();
+      }
+      return;
+    }
+    screenStack.pop();
+  }
+  // Fallback: go back to detail
+  showScreen('screenDetail', false);
+}
+
+// ═══════════════════════════════════════════
+// AS FLOW
+// ═══════════════════════════════════════════
+function initAsFlow() {
+  if (!currentItem) return;
+  asItemsDone = {};
+  currentItem.asItems.forEach((_, i) => { asItemsDone[i] = false; });
+  renderAsItems();
+}
+
+function renderAsItems() {
+  const container = document.getElementById('asFlowItems');
+  container.innerHTML = currentItem.asItems.map((item, i) => {
+    const done = asItemsDone[i];
+    return `<div class="as-item${done ? ' done' : ''}" onclick="openAsItem(${i})">
+      <div class="as-checkbox">${done ? '&#10003;' : ''}</div>
+      <span class="as-text">${item}</span>
+      <span style="font-size:18px;color:var(--text-muted);">&#8250;</span>
+    </div>`;
+  }).join('');
+  // Update verify button
+  const allDone = Object.values(asItemsDone).every(v => v);
+  const btn = document.getElementById('btnAsVerify');
+  btn.className = allDone ? 'btn-full btn-primary' : 'btn-full btn-disabled';
+}
+
+function openAsItem(idx) {
+  if (asItemsDone[idx]) return; // already done
+  currentAsIdx = idx;
+  const itemName = currentItem.asItems[idx];
+  // 단말기 단순 교체 / 단말기 모델 교체 → 설치와 동일한 프로세스
+  if (itemName === '단말기 단순 교체' || itemName === '단말기 모델 교체') {
+    asDeviceFlowActive = true;
+    selectedDevice = null;
+    installPhotos = [false, false, false, false, false, false, false, false]; // v4.2: 8장
+    initDeviceGrid();
+    installStep(1);
+    return;
+  }
+  asDeviceFlowActive = false;
+  asPhotoCaptured = false;
+  document.getElementById('asItemTitle').textContent = itemName;
+  const photoEl = document.getElementById('asPhoto');
+  photoEl.classList.remove('captured');
+  photoEl.querySelector('.photo-upload-btn').textContent = '촬영하기';
+  document.getElementById('btnAsItemDone').style.opacity = '0.4';
+  document.getElementById('btnAsItemDone').style.pointerEvents = 'none';
+  showScreen('screenAsItem');
+}
+
+function captureAsPhoto() {
+  asPhotoCaptured = true;
+  const el = document.getElementById('asPhoto');
+  el.classList.add('captured');
+  el.querySelector('.photo-upload-btn').textContent = '촬영 완료';
+  document.getElementById('btnAsItemDone').style.opacity = '1';
+  document.getElementById('btnAsItemDone').style.pointerEvents = 'auto';
+}
+
+function completeAsItem() {
+  if (currentAsIdx < 0) return;
+  asItemsDone[currentAsIdx] = true;
+  goBack();
+  renderAsItems();
+}
+
+// ═══════════════════════════════════════════
+// REMOVAL FLOW
+// ═══════════════════════════════════════════
+function showRemovalConfirm() {
+  document.getElementById('modalRemovalConfirm').classList.add('open');
+}
+
+function confirmRemoval() {
+  closeModal('modalRemovalConfirm');
+  // Show dkey section if applicable
+  if (currentItem.dkey) {
+    document.getElementById('removalDkeySection').style.display = 'block';
+  } else {
+    document.getElementById('removalDkeySection').style.display = 'none';
+  }
+  // Reset photos
+  removalPhotos = [false, false, false];
+  document.getElementById('removalPhoto').classList.remove('captured');
+  document.getElementById('removalPhoto').querySelector('.photo-upload-btn').textContent = '촬영하기';
+  if (currentItem.dkey) {
+    document.getElementById('removalDkeyPhoto').classList.remove('captured');
+    document.getElementById('removalDkeyPhoto').querySelector('.photo-upload-btn').textContent = '촬영하기';
+    document.getElementById('removalDkeyVideo').classList.remove('captured');
+    document.getElementById('removalDkeyVideo').querySelector('.photo-upload-btn').textContent = '촬영하기';
+  }
+  document.getElementById('btnRemovalComplete').className = 'btn-full btn-disabled';
+  showScreen('screenRemoval');
+}
+
+function captureRemovalPhoto(idx) {
+  removalPhotos[idx] = true;
+  const elIds = ['removalPhoto', 'removalDkeyPhoto', 'removalDkeyVideo'];
+  const el = document.getElementById(elIds[idx]);
+  el.classList.add('captured');
+  el.querySelector('.photo-upload-btn').textContent = '촬영 완료';
+  // Check completion
+  let canComplete = removalPhotos[0]; // main photo required
+  if (currentItem.dkey) {
+    canComplete = canComplete && removalPhotos[1] && removalPhotos[2];
+  }
+  document.getElementById('btnRemovalComplete').className = canComplete ? 'btn-full btn-primary' : 'btn-full btn-disabled';
+}
+
+// ═══════════════════════════════════════════
+// COMPLETE WORK
+// ═══════════════════════════════════════════
+function completeWork() {
+  document.getElementById('modalComplete').classList.add('open');
+}
+
+function finalComplete() {
+  closeModal('modalComplete');
+  document.getElementById('modalDone').classList.add('open');
+}
+
+// ═══════════════════════════════════════════
+// UNABLE
+// ═══════════════════════════════════════════
+function showUnableModal() {
+  document.getElementById('unableReasonSelect').selectedIndex = 0;
+  document.getElementById('unableReasonEtcWrap').style.display = 'none';
+  document.getElementById('unableReasonEtc').value = '';
+  // v5.0: 사진 초기화
+  document.getElementById('unablePhotoInput').value = '';
+  document.getElementById('unablePhotoPreview').innerHTML = '';
+  validateUnableSubmit();
+  document.getElementById('modalUnable').classList.add('open');
+}
+
+function onUnableReasonChange() {
+  const sel = document.getElementById('unableReasonSelect').value;
+  document.getElementById('unableReasonEtcWrap').style.display = sel === '기타 현장 사유' ? 'block' : 'none';
+  if (sel !== '기타 현장 사유') {
+    document.getElementById('unableReasonEtc').value = '';
+  }
+  validateUnableSubmit();
+}
+
+// v5.0: 사진 첨부
+function onUnablePhotoChange(inp) {
+  const preview = document.getElementById('unablePhotoPreview');
+  const count = inp.files.length;
+  if (count > 5) {
+    alert('최대 5장까지 첨부 가능합니다.');
+    inp.value = '';
+    preview.innerHTML = '';
+  } else if (count > 0) {
+    preview.innerHTML = '✓ ' + count + '장 촬영 완료 (' + Array.from(inp.files).map(f => f.name).join(', ') + ')';
+    preview.style.color = '#059669';
+  } else {
+    preview.innerHTML = '';
+  }
+  validateUnableSubmit();
+}
+
+function validateUnableSubmit() {
+  const sel = document.getElementById('unableReasonSelect').value;
+  const etc = document.getElementById('unableReasonEtc').value.trim();
+  const photos = document.getElementById('unablePhotoInput').files.length;
+  const btn = document.getElementById('btnUnableSubmit');
+  if (!btn) return;
+  let ok = !!sel && photos >= 1;
+  if (sel === '기타 현장 사유' && !etc) ok = false;
+  btn.style.opacity = ok ? '1' : '0.4';
+  btn.style.pointerEvents = ok ? 'auto' : 'none';
+}
+
+function submitUnable() {
+  const sel = document.getElementById('unableReasonSelect').value;
+  if (!sel) {
+    alert('사유를 선택해주세요.');
+    return;
+  }
+  if (sel === '기타 현장 사유') {
+    const etc = document.getElementById('unableReasonEtc').value.trim();
+    if (!etc) {
+      alert('기타 사유를 입력해주세요.');
+      return;
+    }
+  }
+  // v5.0: 증빙 사진 1장+ 필수
+  const photoCount = document.getElementById('unablePhotoInput').files.length;
+  if (photoCount < 1) {
+    alert('증빙 사진을 1장 이상 촬영해주세요. (v5.0)');
+    return;
+  }
+  closeModal('modalUnable');
+  document.getElementById('modalDone').classList.add('open');
+  document.querySelector('#modalDone .modal-title').textContent = '작업 불가 처리 완료';
+  document.querySelector('#modalDone .modal-msg').textContent = '해당 건이 작업불가로 종결 처리되었습니다.\n증빙 사진 ' + photoCount + '장 + 사유 "' + sel + '"가 어드민 상세 팝업에 기록됩니다.';
+}
+
+// ═══════════════════════════════════════════
+// v5.3: 검증 팝업 함수
+// ═══════════════════════════════════════════
+
+// 운행 패킷 유효성 체크 팝업 config (index = validationSteps 배열 인덱스)
+const PACKET_STEP_CONFIG = [
+  null, null, null, // 0~2: 자동 진행 단계
+  { num:'1/8', icon:'🚗', title:'차량 시동을 꺼주세요.',
+    body:'단말기 Trip 패킷 수신을 확인하기 위해\n차량 시동을 꺼주세요.',
+    type:'action', btnLabel:'진행 — 시동 껐습니다' },
+  { num:'2/8', icon:'🚗', title:'차량 시동이 꺼졌나요?',
+    body:'차량 시동이 꺼진 것을 확인해 주세요.\n아직 꺼지지 않았다면 [아니오]를 눌러 잠시 대기해 주세요.',
+    type:'confirm' },
+  { num:'3/8', icon:'💡', title:'단말기 LED를 확인해 주세요.',
+    body:"단말기 바코드 아래 빨간 동그라미 안 'O'부분이\n1번씩 깜박거리나요?\n아니라면 최장 1분 대기해주세요.\n(단말기가 차량의 시동을 인식중입니다.)",
+    type:'confirm_image', imgAlt:'단말기 LED 1회 점멸' },
+  { num:'4/8', icon:'🔑', title:'차량 시동을 켜주세요.',
+    body:'단말기 Activation 패킷 수신을 위해\n차량 시동을 켜주세요.',
+    type:'action', btnLabel:'진행 — 시동 켰습니다' },
+  { num:'5/8', icon:'🚗', title:'차량 시동이 켜졌나요?',
+    body:'차량 시동이 켜진 것을 확인해 주세요.\n아직 켜지지 않았다면 [아니오]를 눌러 잠시 대기해 주세요.',
+    type:'confirm' },
+  { num:'6/8', icon:'💡', title:'단말기 LED를 확인해 주세요.',
+    body:"단말기 바코드 아래 빨간 동그라미 안 'O'부분이\n2번씩 깜박거리나요?\n아니라면 최장 1분 대기해주세요.\n(단말기가 차량의 시동을 인식중입니다.)",
+    type:'confirm_image', imgAlt:'단말기 LED 2회 점멸' },
+  { num:'7/8', icon:'▶', title:'다음 단계로 진행합니다.',
+    body:'패킷 수신 확인이 완료되었습니다.\n다음 단계로 이동합니다.',
+    type:'action', btnLabel:'진행' },
+  { num:'8/8', icon:'✅', title:'설치가 정상적으로 완료되었습니다.',
+    body:'패킷 유효성 체크가 모두 완료되었습니다.',
+    type:'complete' },
+  null // 11: 자동 진행 (패킷 유효성 체크 완료)
+];
+
+// 패킷 체크 팝업 표시 — 콘텐츠를 동적으로 설정하고 open
+function showPacketCheckPopup(stepIdx, continueCallback) {
+  const cfg = PACKET_STEP_CONFIG[stepIdx];
+  if (!cfg) { if (continueCallback) continueCallback(); return; }
+  _packetStepCallback = continueCallback;
+  _currentPacketStep = stepIdx;
+
+  document.getElementById('pcStepBadge').textContent = '운행 패킷 유효성 체크 ' + cfg.num;
+  document.getElementById('pcIcon').textContent = cfg.icon;
+  document.getElementById('pcTitle').textContent = cfg.title;
+  document.getElementById('pcBody').textContent = cfg.body;
+  document.getElementById('pcWaitState').style.display = 'none';
+  document.getElementById('pcFirmware').style.display = 'none';
+
+  const imgWrap = document.getElementById('pcImgWrap');
+  if (cfg.type === 'confirm_image') {
+    imgWrap.style.display = 'flex';
+    imgWrap.textContent = '📷 개발팀 제공 이미지\n(' + cfg.imgAlt + ')';
+  } else {
+    imgWrap.style.display = 'none';
+  }
+
+  if (cfg.type === 'complete') {
+    document.getElementById('pcFirmware').style.display = 'block';
+    document.getElementById('pcFirmware').innerHTML =
+      '<strong>단말기 펌웨어 정보</strong><br>' +
+      'CarDB 버전: v2.4.1<br>OBD 버전: v1.7.3<br>APP 버전: v3.2.0';
+  }
+
+  const btns = document.getElementById('pcBtns');
+  if (cfg.type === 'action') {
+    btns.innerHTML = `<button class="verify-popup-btn primary" style="flex:1" onclick="confirmPacketStep('go')">${cfg.btnLabel || '진행'}</button>`;
+  } else if (cfg.type === 'confirm' || cfg.type === 'confirm_image') {
+    btns.innerHTML =
+      `<button class="verify-popup-btn gray" onclick="confirmPacketStep('no')">아니오</button>` +
+      `<button class="verify-popup-btn primary" onclick="confirmPacketStep('yes')">네</button>`;
+  } else if (cfg.type === 'complete') {
+    btns.innerHTML = `<button class="verify-popup-btn primary" style="flex:1;background:#15ab39;" onclick="confirmPacketStep('complete')">완료</button>`;
+  }
+
+  document.getElementById('modalPacketCheck').classList.add('open');
+}
+
+// 패킷 체크 팝업 버튼 핸들러
+function confirmPacketStep(answer) {
+  const stepIdx = _currentPacketStep;
+  const cfg = PACKET_STEP_CONFIG[stepIdx];
+  if (!cfg) return;
+
+  if (answer === 'no') {
+    // EX-03: 6/8 단계에서 [아니오] + ex03 시나리오 → Activation 타임아웃 에러
+    if (stepIdx === 8 && demoScenario === 'ex03') {
+      document.getElementById('modalPacketCheck').classList.remove('open');
+      const icon = document.getElementById('valIcon' + stepIdx);
+      const status = document.getElementById('valStatus' + stepIdx);
+      if (icon) { icon.className = 'val-icon fail'; icon.innerHTML = '&#10007;'; }
+      if (status) { status.textContent = '시동 미감지'; status.style.color = '#dc2626'; }
+      // _packetStepCallback / _currentPacketStep 유지 → retryFromEx03 재사용
+      document.getElementById('modalEx03').classList.add('open');
+      return;
+    }
+    // 대기 상태: "단말기 확인중" 표시 → 1.8초 후 자동 [네]로 진행
+    const waitEl = document.getElementById('pcWaitState');
+    const btns = document.getElementById('pcBtns');
+    waitEl.style.display = 'block';
+    btns.querySelectorAll('button').forEach(b => { b.disabled = true; b.style.opacity = '0.4'; });
+    setTimeout(() => {
+      waitEl.style.display = 'none';
+      btns.querySelectorAll('button').forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+      confirmPacketStep('yes');
+    }, 1800);
+    return;
+  }
+
+  // 'yes' / 'go' / 'complete' → 팝업 닫고 콜백 실행
+  document.getElementById('modalPacketCheck').classList.remove('open');
+  const cb = _packetStepCallback;
+  _packetStepCallback = null;
+  _currentPacketStep = -1;
+  if (cb) cb();
+}
+
+// 시나리오 버튼 선택
+function setDemoScenario(btn, scenario) {
+  demoScenario = scenario;
+  const bar = btn.closest('.scenario-bar');
+  if (bar) bar.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active', 'active-err'));
+  btn.classList.add(scenario === 'normal' ? 'active' : 'active-err');
+}
+
+// 액션 안내 팝업 표시 (시동 ON / 시동 OFF) — 블로킹
+function showVerifyActionPopup(modalId, callback) {
+  verifyResumeCallback = callback;
+  document.getElementById(modalId).classList.add('open');
+}
+
+// 팝업 [확인] 클릭 → 재개
+function confirmVerifyActionPopup(modalId) {
+  document.getElementById(modalId).classList.remove('open');
+  if (verifyResumeCallback) {
+    const cb = verifyResumeCallback;
+    verifyResumeCallback = null;
+    cb();
+  }
+}
+
+// EX-02 [재시도] — OBD 초기화 처음부터 재실행
+function retryFromEx02() {
+  document.getElementById('modalEx02').classList.remove('open');
+  demoScenario = 'normal';
+  document.querySelectorAll('#obdScenarioBar .scenario-btn').forEach(b => b.classList.remove('active','active-err'));
+  document.querySelector('#obdScenarioBar .scenario-btn:first-child').classList.add('active');
+  initValidation(false); // 재시도 시 시작 버튼 미표시
+  setTimeout(() => { runValidation(); }, 300);
+}
+
+// EX-14 [재시도] — CarDB 설치(step 1)부터 재진행. 단계 1, 2 초기화 후 step 1부터 재실행.
+function retryFromEx14() {
+  document.getElementById('modalEx14').classList.remove('open');
+  [1, 2].forEach(idx => {
+    const icon = document.getElementById('valIcon' + idx);
+    const status = document.getElementById('valStatus' + idx);
+    if (icon) { icon.className = 'val-icon pending'; icon.innerHTML = '&#9679;'; }
+    if (status) { status.textContent = '대기'; status.style.color = ''; }
+    const item = document.getElementById('valItem' + idx);
+    if (item) item.classList.remove('done');
+  });
+  demoScenario = 'normal';
+  document.querySelectorAll('#obdScenarioBar .scenario-btn').forEach(b => b.classList.remove('active','active-err'));
+  document.querySelector('#obdScenarioBar .scenario-btn:first-child').classList.add('active');
+  setTimeout(() => { runValidation(1); }, 300);
+}
+
+// EX-15 [재시도] — CarDB 결과 체크(step 2)부터 재진행. 단계 2 초기화 후 step 2부터 재실행.
+function retryFromEx15() {
+  document.getElementById('modalEx15').classList.remove('open');
+  const idx = 2;
+  const icon = document.getElementById('valIcon' + idx);
+  const status = document.getElementById('valStatus' + idx);
+  if (icon) { icon.className = 'val-icon pending'; icon.innerHTML = '&#9679;'; }
+  if (status) { status.textContent = '대기'; status.style.color = ''; }
+  const item = document.getElementById('valItem' + idx);
+  if (item) item.classList.remove('done');
+  demoScenario = 'normal';
+  document.querySelectorAll('#obdScenarioBar .scenario-btn').forEach(b => b.classList.remove('active','active-err'));
+  document.querySelector('#obdScenarioBar .scenario-btn:first-child').classList.add('active');
+  setTimeout(() => { runValidation(2); }, 300);
+}
+
+// EX-03 [재시도] — 6/8 팝업(LED 2회 점멸 확인)으로 돌아가 재시도
+function retryFromEx03() {
+  document.getElementById('modalEx03').classList.remove('open');
+  const stepIdx = 8; // 6/8 = index 8
+  const icon = document.getElementById('valIcon' + stepIdx);
+  const status = document.getElementById('valStatus' + stepIdx);
+  if (icon) { icon.className = 'val-icon pending'; icon.innerHTML = '&#9679;'; }
+  if (status) { status.textContent = '대기'; status.style.color = ''; }
+  const item = document.getElementById('valItem' + stepIdx);
+  if (item) item.classList.remove('done');
+  demoScenario = 'normal';
+  document.querySelectorAll('#obdScenarioBar .scenario-btn').forEach(b => b.classList.remove('active','active-err'));
+  document.querySelector('#obdScenarioBar .scenario-btn:first-child').classList.add('active');
+  // 저장된 콜백으로 6/8 팝업 재표시
+  if (_packetStepCallback) {
+    showPacketCheckPopup(stepIdx, _packetStepCallback);
+  }
+}
+
+// EX-05 [재시도] — 시동잠금 테스트 버튼 복원
+function retryFromEx05() {
+  document.getElementById('modalEx05').classList.remove('open');
+  const btn = document.getElementById('btnEngineLockTest');
+  if (btn) { btn.textContent = '시동잠금 테스트'; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
+  const result = document.getElementById('engineLockTestResult');
+  if (result) result.style.display = 'none';
+  demoScenario = 'normal';
+  document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active','active-err'));
+  const activeBar = document.getElementById('nonObdScenarioBar').style.display !== 'none'
+    ? '#nonObdScenarioBar' : '#obdScenarioBar';
+  document.querySelector(activeBar + ' .scenario-btn:first-child').classList.add('active');
+}
+
+// EX-12 [재시도] — Non-OBD 시동 ON 버튼 복원
+function retryNonObdOn() {
+  document.getElementById('modalEx12').classList.remove('open');
+  const btn = document.getElementById('btnNonObdOn');
+  if (btn) { btn.textContent = '시작'; btn.disabled = false; btn.style.background = '#7c3aed'; btn.style.color = 'white'; btn.style.cursor = 'pointer'; }
+  demoScenario = 'normal';
+  document.querySelectorAll('#nonObdScenarioBar .scenario-btn').forEach(b => b.classList.remove('active','active-err'));
+  document.querySelector('#nonObdScenarioBar .scenario-btn:first-child').classList.add('active');
+}
+
+// EX-13 [재시도] — Non-OBD 시동 OFF 버튼 복원
+function retryNonObdOff() {
+  document.getElementById('modalEx13').classList.remove('open');
+  const btn = document.getElementById('btnNonObdOff');
+  if (btn) { btn.textContent = '시작'; btn.disabled = false; btn.style.background = '#7c3aed'; btn.style.color = 'white'; btn.style.cursor = 'pointer'; }
+  demoScenario = 'normal';
+  document.querySelectorAll('#nonObdScenarioBar .scenario-btn').forEach(b => b.classList.remove('active','active-err'));
+  document.querySelector('#nonObdScenarioBar .scenario-btn:first-child').classList.add('active');
+}
+
+// 에러 팝업에서 [작업 불가] → modalUnable 연결
+function showUnableFromVerify(modalId) {
+  document.getElementById(modalId).classList.remove('open');
+  showUnableModal();
+}
+
+// v5.0: 기타 사유 입력 시 버튼 동기화
+document.addEventListener('DOMContentLoaded', () => {
+  const etc = document.getElementById('unableReasonEtc');
+  if (etc) etc.addEventListener('input', validateUnableSubmit);
+});
+
+// ═══════════════════════════════════════════
+// HISTORY DETAIL
+// ═══════════════════════════════════════════
+function openHistoryDetail(id) {
+  const item = historyData.find(d => d.id === id);
+  if (!item) return;
+  document.getElementById('hdVehicle').textContent = item.vehicle;
+  document.getElementById('hdCompany').textContent = item.company;
+  document.getElementById('hdBranch').textContent = item.branch;
+  document.getElementById('hdType').innerHTML = getTypeBadge(item.type);
+  document.getElementById('hdDate').textContent = item.completedAt;
+  const resultBadge = item.result === '완료'
+    ? '<span class="badge b-completed">완료</span>'
+    : '<span class="badge b-unable">작업불가</span>';
+  document.getElementById('hdResult').innerHTML = resultBadge;
+
+  // Photos
+  const photoLabels = item.type === '탈거'
+    ? ['탈거 사진']
+    : ['단말기 고정', '안테나 설치 위치', '계기판 주행거리'];
+  document.getElementById('hdPhotos').innerHTML = photoLabels.map(l =>
+    `<div class="history-photo-thumb">${l}</div>`
+  ).join('');
+
+  // Device info (only for install/AS)
+  document.getElementById('hdDeviceSection').style.display =
+    (item.type === '설치' || item.type === 'AS') ? 'block' : 'none';
+
+  showScreen('screenHistoryDetail');
+}
+
+// ═══════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
+// ═══════════════════════════════════════════
+// CANCEL NOTIFICATION (v3.3)
+// 취소 알림 수신 시 목록 자동 제거, 작업 중이면 취소 안내 팝업
+// ═══════════════════════════════════════════
+function receiveCancelNotification(itemId) {
+  // Remove from assigned list
+  const idx = assignedData.findIndex(d => d.id === itemId);
+  if (idx >= 0) assignedData.splice(idx, 1);
+  // If currently viewing this item, show cancel popup
+  if (currentItem && currentItem.id === itemId) {
+    document.getElementById('modalCancelNotify').classList.add('open');
+  } else {
+    // Just re-render list silently
+    renderAssignedList(document.getElementById('searchList')?.value || '');
+  }
+}
+
+function handleCancelNotify() {
+  closeModal('modalCancelNotify');
+  currentItem = null;
+  screenStack = [];
+  showScreen('screenList', false);
+  switchTab('list');
+}
+
+// ═══════════════════════════════════════════
+// INSTALL TYPE CHANGE NOTIFICATION (H-02)
+// 설치형태 변경 시 작업 초기화 후 배정 목록으로 복귀
+// ═══════════════════════════════════════════
+function notifyInstallTypeChange(itemId) {
+  const item = assignedData.find(d => d.id === itemId);
+  if (!item) return;
+  // Show modal if currently working on this item
+  if (currentItem && currentItem.id === itemId) {
+    document.getElementById('modalInstallTypeChange').classList.add('open');
+  }
+}
+
+function handleInstallTypeChangeConfirm() {
+  closeModal('modalInstallTypeChange');
+  // Reset work state
+  selectedDevice = null;
+  installPhotos = [false, false, false, false, false, false, false, false]; // v4.2: 8장
+  installTaskDone = false;
+  asItemsDone = {};
+  currentAsIdx = -1;
+  asPhotoCaptured = false;
+  asDeviceFlowActive = false;
+  removalPhotos = [false, false, false];
+  // Navigate back to assigned list
+  currentItem = null;
+  screenStack = [];
+  showScreen('screenList', false);
+  switchTab('list');
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+renderAssignedList();
+renderHistoryList();
+</script>
+
+</body>
+</html>

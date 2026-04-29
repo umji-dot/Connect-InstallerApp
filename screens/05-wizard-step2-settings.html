@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>위저드 Step 2 — 설정 입력 — Connect Installer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="../colors_and_type.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #EAEAEC;
+      font-family: var(--font-sans);
+      color: var(--n-900);
+      min-height: 100vh;
+    }
+    .stage {
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 28px;
+      padding: 32px 24px;
+      flex-wrap: wrap;
+    }
+    .frame-wrap {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 12px;
+    }
+    .frame-wrap .case {
+      font-size: 14px;
+      color: var(--n-900);
+      font-weight: 700;
+      padding: 4px 12px;
+      background: white;
+      border-radius: 999px;
+      border: 1px solid var(--n-300);
+    }
+    .frame-wrap .label {
+      font-size: 12px;
+      color: var(--n-600);
+      max-width: 402px;
+      text-align: center;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="frame-wrap">
+      <div class="case">A. OBD · 입력 미완료</div>
+      <div id="root-a"></div>
+      <div class="label">SN 직접 입력 / 다음 비활성</div>
+    </div>
+    <div class="frame-wrap">
+      <div class="case">B. OBD · 입력 완료</div>
+      <div id="root-b"></div>
+      <div class="label">SN 입력 완료 / 다음 활성</div>
+    </div>
+    <div class="frame-wrap">
+      <div class="case">C. Non-OBD · 호출 전</div>
+      <div id="root-c"></div>
+      <div class="label">[Non-OBD 호출] 버튼 노출 / 다음 비활성</div>
+    </div>
+    <div class="frame-wrap">
+      <div class="case">D. Non-OBD · 호출 완료</div>
+      <div id="root-d"></div>
+      <div class="label">SN 변환 완료 배너 / 다음 활성</div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script src="../ui_kits/installer-app/tokens.js"></script>
+  <script type="text/babel" src="ios-frame.jsx"></script>
+  <script type="text/babel" src="../ui_kits/installer-app/Primitives.jsx"></script>
+  <script type="text/babel" src="../ui_kits/installer-app/WizardStep2Settings.jsx"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const T = window.CIT;
+    const SAMPLE_JOB = { plate: "12가 3456", model: "현대 셀토스" };
+
+    function Frame({ rootId, label, props }) {
+      return (
+        <IOSDevice width={402} height={874}>
+          <div data-screen-label={`05 위저드 Step 2 · ${label}`} style={{
+            width: "100%", height: "100%",
+            paddingTop: 54,
+            paddingBottom: 34,
+            boxSizing: "border-box",
+            display: "flex", flexDirection: "column",
+            background: T.colors.n50,
+            fontFamily: T.font.family,
+          }}>
+            <WizardStep2Settings
+              job={SAMPLE_JOB}
+              digitalKey="설치"
+              ignitionLock="설치"
+              onChangeSn={() => {}} onChangeUserId={() => {}} onChangeUserPw={() => {}}
+              onCall={() => console.log("call")}
+              onPrev={() => console.log("prev")}
+              onNext={() => console.log("next")}
+              {...props}
+            />
+          </div>
+        </IOSDevice>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root-a")).render(
+      <Frame label="A OBD 미완료"
+        props={{ isNonObd: false, sn: "", userId: "", userPw: "", callStatus: "idle" }} />
+    );
+    ReactDOM.createRoot(document.getElementById("root-b")).render(
+      <Frame label="B OBD 완료"
+        props={{ isNonObd: false, sn: "CAMD2500-A1B2C3", userId: "kim.installer",
+                 userPw: "********", callStatus: "idle" }} />
+    );
+    ReactDOM.createRoot(document.getElementById("root-c")).render(
+      <Frame label="C Non-OBD 호출 전"
+        props={{ isNonObd: true, sn: "", userId: "kim.installer",
+                 userPw: "********", callStatus: "idle" }} />
+    );
+    ReactDOM.createRoot(document.getElementById("root-d")).render(
+      <Frame label="D Non-OBD 완료"
+        props={{ isNonObd: true, sn: "NOBD-X7Y8Z9", userId: "kim.installer",
+                 userPw: "********", callStatus: "success", convertedSn: "CAMD3000BL-X7Y8Z9" }} />
+    );
+  </script>
+</body>
+</html>

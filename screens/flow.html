@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>Flow Simulator · Connect Installer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="../colors_and_type.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #1F1F23;
+      font-family: var(--font-sans);
+      color: #F2F2F3;
+      min-height: 100vh;
+    }
+    .app { min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; }
+
+    .topbar {
+      background: #2A2A30; border-bottom: 1px solid #3A3A42;
+      padding: 16px 24px;
+      display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    }
+    .topbar h1 { margin: 0; font-size: 14px; font-weight: 700; color: #F2F2F3; letter-spacing: 0.4px; }
+    .topbar h1 small {
+      color: #9797A0; font-weight: 400; margin-left: 8px;
+      font-family: ui-monospace, monospace; font-size: 12px;
+    }
+    .scn-tabs { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+    .scn-tabs .group-label {
+      font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase;
+      color: #66666F; font-weight: 700;
+      align-self: center; margin-right: 6px;
+      font-family: ui-monospace, monospace;
+    }
+    .scn-tabs button {
+      all: unset; cursor: pointer;
+      padding: 7px 12px; font-size: 12px; font-weight: 600;
+      color: #CECED2; border-radius: 6px;
+      background: #1F1F23; border: 1px solid #3A3A42;
+      font-family: ui-monospace, monospace;
+    }
+    .scn-tabs button:hover { background: #34343C; }
+    .scn-tabs button.active { background: #4A6FF5; border-color: #4A6FF5; color: white; }
+    .scn-tabs button.error.active { background: #D72222; border-color: #D72222; }
+    .scn-tabs .sep { width: 1px; height: 18px; background: #3A3A42; align-self: center; margin: 0 4px; }
+
+    .stage {
+      display: flex; align-items: center; justify-content: center;
+      padding: 32px 24px;
+    }
+    .device-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .device-wrap iframe {
+      width: 410px; height: 880px; border: 0;
+      border-radius: 14px; background: white;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+    }
+    .step-caption {
+      background: #2A2A30; padding: 12px 18px; border-radius: 8px;
+      font-size: 13px; color: #CECED2;
+      max-width: 410px; line-height: 1.5;
+      font-family: ui-monospace, monospace;
+    }
+    .step-caption b { color: #F2F2F3; }
+    .step-caption .ex {
+      display: inline-block; padding: 2px 8px;
+      background: #D72222; color: white; border-radius: 4px;
+      font-size: 11px; margin-right: 6px; font-weight: 700;
+    }
+    .step-caption .ok {
+      display: inline-block; padding: 2px 8px;
+      background: #62D764; color: #1F1F23; border-radius: 4px;
+      font-size: 11px; margin-right: 6px; font-weight: 700;
+    }
+
+    .bottombar {
+      background: #2A2A30; border-top: 1px solid #3A3A42;
+      padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    }
+    .progress { flex: 1; display: flex; align-items: center; gap: 12px; }
+    .progress .dots { display: flex; gap: 6px; flex-wrap: wrap; }
+    .progress .dots .dot { width: 10px; height: 10px; border-radius: 5px; background: #3A3A42; }
+    .progress .dots .dot.done { background: #62D764; }
+    .progress .dots .dot.active { background: #4A6FF5; }
+    .progress .label {
+      font-size: 12px; color: #9797A0;
+      font-family: ui-monospace, monospace; white-space: nowrap;
+    }
+    .nav-btns { display: flex; gap: 8px; }
+    .nav-btns button {
+      all: unset; cursor: pointer;
+      padding: 9px 18px; border-radius: 6px;
+      font-size: 13px; font-weight: 600;
+      background: #1F1F23; color: #F2F2F3;
+      border: 1px solid #3A3A42;
+      font-family: ui-monospace, monospace;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .nav-btns button:hover:not(:disabled) { background: #34343C; }
+    .nav-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
+    .nav-btns button.primary { background: #4A6FF5; border-color: #4A6FF5; }
+    .nav-btns button.primary:hover:not(:disabled) { background: #3A5FE5; }
+    .nav-btns .ico { font-family: 'Material Symbols Outlined'; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1>Flow Simulator <small>/screens/flow.html</small></h1>
+      <div class="scn-tabs" id="scnTabs"></div>
+    </header>
+
+    <section class="stage">
+      <div class="device-wrap">
+        <iframe id="frame" src="" title="현재 화면"></iframe>
+        <div class="step-caption" id="caption"></div>
+      </div>
+    </section>
+
+    <footer class="bottombar">
+      <div class="progress">
+        <div class="dots" id="dots"></div>
+        <div class="label" id="progLabel"></div>
+      </div>
+      <div class="nav-btns">
+        <button id="prevBtn"><span class="ico">arrow_back</span> 이전</button>
+        <button id="nextBtn" class="primary">다음 <span class="ico">arrow_forward</span></button>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // 시나리오: validation-obd 화면이 hash로 자체 시나리오 전환을 노출하지 않으므로
+    // 모달/단계는 현재 단일 step (이미지 컷 형태)로 시뮬레이션.
+    // 향후 다른 화면 추가되면 steps 배열에 url 여러 개로 확장.
+    const SCENARIOS = {
+      "happy-1": {
+        label: "1/8 시동 OFF 안내", group: "Happy Path (OBD)",
+        steps: [{ url: "validation-obd.html", title: "STEP 1/8 — 차량 시동 OFF 안내", desc: "액션 안내 팝업(차단형). 우측 chrome에서 'step-1'을 선택해 동일 상태 확인 가능.", badge: "ok" }]
+      },
+      "happy-3": {
+        label: "3/8 LED 1회 점멸", group: "Happy Path (OBD)",
+        steps: [{ url: "validation-obd.html", title: "STEP 3/8 — 단말기 LED 1회 점멸 확인", desc: "확인 팝업 + LED 점멸 이미지(placeholder). chrome의 'step-3'에 대응.", badge: "ok" }]
+      },
+      "happy-6": {
+        label: "6/8 LED 2회 점멸", group: "Happy Path (OBD)",
+        steps: [{ url: "validation-obd.html", title: "STEP 6/8 — 단말기 LED 2회 점멸 확인", desc: "[아니오] + 자동 재확인 후 미감지 시 EX-03 트리거.", badge: "ok" }]
+      },
+      "happy-8": {
+        label: "8/8 설치 완료", group: "Happy Path (OBD)",
+        steps: [{ url: "validation-obd.html", title: "STEP 8/8 — 설치 완료", desc: "완료 팝업. CarDB / OBD / APP 펌웨어 버전 표시 (BR-23).", badge: "ok" }]
+      },
+      "ex-02": {
+        label: "EX-02 초기화 실패", group: "Error Scenarios",
+        steps: [{ url: "validation-obd.html", title: "EX-02 — 단말기 초기화 실패", desc: "OBD 설정 초기화 단계(step 0). [재시도] 시 step 0부터.", badge: "ex" }]
+      },
+      "ex-14": {
+        label: "EX-14 CarDB 설치 실패", group: "Error Scenarios",
+        steps: [{ url: "validation-obd.html", title: "EX-14 — 차량 DB 설치 실패 (v5.5 신규)", desc: "step 1 실패. [재시도] 시 step 1부터 재진행 — 이미 성공한 OBD 초기화는 재수행하지 않음.", badge: "ex" }]
+      },
+      "ex-15": {
+        label: "EX-15 CarDB 검증 실패", group: "Error Scenarios",
+        steps: [{ url: "validation-obd.html", title: "EX-15 — 차량 DB 검증 실패 (v5.5 신규)", desc: "step 2 실패. [재시도] 시 step 2부터 재진행 — CarDB 설치 단계는 재수행하지 않음.", badge: "ex" }]
+      },
+      "ex-03": {
+        label: "EX-03 시동 미감지", group: "Error Scenarios",
+        steps: [{ url: "validation-obd.html", title: "EX-03 — 시동이 감지되지 않습니다", desc: "6/8 단계에서 Activation 패킷 미수신 타임아웃. [재시도] 시 step 6부터.", badge: "ex" }]
+      },
+      "running": {
+        label: "검증 진행 중", group: "In-Progress",
+        steps: [{ url: "validation-obd.html", title: "검증 진행 중 — step 2", desc: "체크리스트 화면. 진행 단계는 스피너, 완료 단계는 초록 체크.", badge: "ok" }]
+      },
+      "locktest": {
+        label: "시동잠금 테스트", group: "In-Progress",
+        steps: [{ url: "validation-obd.html", title: "시동잠금 테스트 (8/8 이후)", desc: "BR-24 인라인 배너 항상 노출.", badge: "ok" }]
+      }
+    };
+
+    // chrome 시나리오 버튼을 자동 클릭하기 위한 매핑 (validation-obd.html chrome data-case)
+    const CASE_MAP = {
+      "happy-1": "step-1", "happy-3": "step-3", "happy-6": "step-6", "happy-8": "step-8",
+      "ex-02": "ex-02", "ex-14": "ex-14", "ex-15": "ex-15", "ex-03": "ex-03",
+      "running": "running", "locktest": "locktest",
+    };
+
+    const tabsEl = document.getElementById('scnTabs');
+    const grouped = {};
+    Object.entries(SCENARIOS).forEach(([id, s]) => { (grouped[s.group] = grouped[s.group] || []).push({ id, ...s }); });
+    Object.entries(grouped).forEach(([group, items], gi) => {
+      if (gi > 0) { const sep = document.createElement('div'); sep.className = 'sep'; tabsEl.appendChild(sep); }
+      const lbl = document.createElement('span');
+      lbl.className = 'group-label'; lbl.textContent = group;
+      tabsEl.appendChild(lbl);
+      items.forEach(it => {
+        const b = document.createElement('button');
+        b.dataset.scn = it.id;
+        if (it.id.startsWith('ex-')) b.classList.add('error');
+        b.textContent = it.label;
+        tabsEl.appendChild(b);
+      });
+    });
+
+    let currentScn = "happy-1";
+    let currentStep = 0;
+    const frame = document.getElementById('frame');
+    const captionEl = document.getElementById('caption');
+    const dotsEl = document.getElementById('dots');
+    const progLabel = document.getElementById('progLabel');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function applyChromeCase() {
+      // iframe 안 chrome 패널의 시나리오 버튼을 자동 클릭
+      const targetCase = CASE_MAP[currentScn];
+      if (!targetCase) return;
+      try {
+        const doc = frame.contentDocument;
+        if (!doc) return;
+        const btn = doc.querySelector(`#chrome button[data-case="${targetCase}"]`);
+        if (btn) btn.click();
+      } catch (e) { /* same-origin only */ }
+    }
+
+    function render() {
+      const scn = SCENARIOS[currentScn];
+      const steps = scn.steps;
+      const step = steps[currentStep];
+
+      tabsEl.querySelectorAll('button').forEach(b => {
+        b.classList.toggle('active', b.dataset.scn === currentScn);
+      });
+
+      // 같은 url이면 reload 강제 — chrome 패널 클릭은 onload 후
+      const sameUrl = frame.src.endsWith(step.url);
+      if (sameUrl) {
+        applyChromeCase();
+      } else {
+        frame.onload = () => { applyChromeCase(); };
+        frame.src = step.url;
+      }
+
+      const badgeHTML = step.badge === 'ex' ? '<span class="ex">ERROR</span>' : '<span class="ok">OK</span>';
+      captionEl.innerHTML = `${badgeHTML}<b>${step.title}</b><br/>${step.desc}`;
+
+      dotsEl.innerHTML = '';
+      steps.forEach((_, i) => {
+        const d = document.createElement('div');
+        d.className = 'dot';
+        if (i < currentStep) d.classList.add('done');
+        else if (i === currentStep) d.classList.add('active');
+        dotsEl.appendChild(d);
+      });
+      progLabel.textContent = `${currentStep + 1} / ${steps.length} · ${scn.label}`;
+
+      prevBtn.disabled = currentStep === 0;
+      nextBtn.disabled = currentStep >= steps.length - 1;
+    }
+
+    tabsEl.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-scn]');
+      if (!btn) return;
+      currentScn = btn.dataset.scn;
+      currentStep = 0;
+      render();
+    });
+    prevBtn.addEventListener('click', () => { if (currentStep > 0) { currentStep--; render(); } });
+    nextBtn.addEventListener('click', () => {
+      const max = SCENARIOS[currentScn].steps.length - 1;
+      if (currentStep < max) { currentStep++; render(); }
+    });
+
+    render();
+  </script>
+</body>
+</html>
